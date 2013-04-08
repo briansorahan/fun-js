@@ -16,8 +16,8 @@ var fun = {};
 var slice = Array.prototype.slice;
 
 //+ isNull :: a -> Boolean
-var isNull = function(obj) {
-	return typeof obj !== 'undefined' && obj !== null;
+fun.isNull = function(obj) {
+	return typeof obj === 'undefined' || obj === null;
 };
 
 //+ toArray :: a -> [b]
@@ -29,7 +29,7 @@ var toArray = function (arrish, n) {
 
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ curry :: f -> _ ... -> g
-var curry = function (fn /* variadic number of args */) {
+var curry = function (fn) {
     var args = toArray(arguments, 1);
     return function () {
 		return fn.apply(this, args.concat(toArray(arguments)));
@@ -73,19 +73,6 @@ fun.reduce = function (f) {
 	var arg1 = arguments[1];
 	var arg2 = arguments[2];
 	return arg2 ? arg2.reduce(f, arg1) : arg1.reduce(f);
-}.autoCurry();
-
-//+ extend :: Object -> Object ... -> Object
-fun.extend = function() {
-	var args = slice(arguments);
-    each(slice.call(arguments, 1), function(source) {
-      if (source) {
-        for (var prop in source) {
-          obj[prop] = source[prop];
-        }
-      }
-    });
-    return obj;
 }.autoCurry();
 
 //+ compose :: f -> g -> h 
@@ -336,7 +323,14 @@ fun.konst = K;
 fun.S = S;
 
 fun.globalize = function(globalObj) {
-	
+	[
+		"isNull"
+		, "reduce"
+		, "map"
+		, "filter"
+	].map(function(prop) {
+		globalObj[prop] = fun[prop];
+	});
 };
 
-exports= fun;
+module.exports = fun;
