@@ -321,6 +321,7 @@ fun.globalize = function(globalObj) {
 	, "map"
 	, "filter"
 	, "compose"
+	, "pluck"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });

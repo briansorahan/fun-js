@@ -168,5 +168,15 @@ describe("fun.js", function() {
 	    expect(add2(4)).toEqual(6);
 	});
     });
+
+    describe("pluck", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof pluck).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(map(pluck("id"), users)).toEqual([1,2,3,4,5]);
+	});
+    });
 });
 
