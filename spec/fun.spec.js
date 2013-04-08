@@ -2,6 +2,9 @@ var fun = require('../fun');
 fun.globalize(global);
 
 describe("fun.js", function() {
+    var isGlobalizable = "is provided by globalize";
+    var isCurriable = "can be curried";
+    
     var users = [
 	{
 	    name: "brian",
@@ -38,6 +41,16 @@ describe("fun.js", function() {
 	return x + y + z;
     }.autoCurry();
 
+    var subtract = function(x, y) {
+	return y - x;
+    }.autoCurry();
+
+    describe("id", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof id).toEqual('function');
+	});
+    });
+
     describe("autoCurry", function() {
 	it("can be called on any Function object", function() {
 	    expect(typeof Function.prototype.autoCurry).toEqual('function');
@@ -55,7 +68,7 @@ describe("fun.js", function() {
     });
 
     describe("isNull", function() {
-	it("is provided by globalize", function() {
+	it(isGlobalizable, function() {
 	    expect(typeof isNull).toEqual('function');
 	});
 	
@@ -77,7 +90,7 @@ describe("fun.js", function() {
     });
 
     describe("isDefined", function() {
-	it("is provided by globalize", function() {
+	it(isGlobalizable, function() {
 	    expect(typeof isDefined).toEqual('function');
 	});
 	
@@ -99,11 +112,11 @@ describe("fun.js", function() {
     });
 
     describe("reduce", function() {
-	it("is provided by globalize", function() {
+	it(isGlobalizable, function() {
 	    expect(typeof reduce).toEqual('function');
 	});
 	
-	it("can be curried", function() {
+	it(isCurriable, function() {
 	    var _mostComments = function(current, candidate) {
 		return candidate.comments > current.comments ? candidate : current;
 	    };
@@ -114,32 +127,28 @@ describe("fun.js", function() {
     });
 
     describe("map", function() {
-	it("is provided by globalize", function() {
+	it(isGlobalizable, function() {
 	    expect(typeof map).toEqual('function');
 	});
 
-	it("can be curried", function() {
+	it(isCurriable, function() {
 	    var xs = [
 		{val: 0, str: "0"},
 		{val: 1, str: "1"},
 		{val: 2, str: "2"}
 	    ];
 
-	    var getVal = function(x) {
-		return x.val;
-	    };
-
-	    var toNumbers = map(getVal);
+	    var toNumbers = map(pluck("val"));
 	    expect(toNumbers(xs)).toEqual([0, 1, 2]);
 	});
     });
 
     describe("filter", function() {
-	it("is provided by globalize", function() {
+	it(isGlobalizable, function() {
 	    expect(typeof filter).toEqual('function');
 	});
 
-	it("can be curried", function() {
+	it(isCurriable, function() {
 	    var _wellCommented = function(user) {
 		return user.comments > 40;
 	    };
@@ -149,5 +158,15 @@ describe("fun.js", function() {
 	});
     });
 
+    describe("compose", function() {
+    	it(isGlobalizable, function() {
+	    expect(typeof compose).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var add2 = compose(subtract(2), add(4));
+	    expect(add2(4)).toEqual(6);
+	});
+    });
 });
 

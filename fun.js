@@ -15,6 +15,11 @@
 var fun = {};
 var slice = Array.prototype.slice;
 
+//+ id :: a -> a
+fun.id = function(x) {
+    return x;
+};
+
 //+ isNull :: a -> Boolean
 fun.isNull = function(obj) {
     return obj === null;
@@ -79,58 +84,62 @@ fun.reduce = function (f, initialValue, xs) {
 
 //+ compose :: f -> g -> h 
 compose = function () {
-    var fns = map(Function.toFunction, arguments),
-        arglen = fns.length;
+    var fns = toArray(arguments), numFns = fns.length;
     return function () {
-	var i;
-	for (i = arglen; --i>=0;) {
-	    arguments = [fns[i].apply(this, arguments)];
-	}
-	return arguments[0];
-    };
-};
-
-//+ sequence :: f -> g -> h
-sequence = function () {
-    var fns = map(Function.toFunction, arguments),
-        arglen = fns.length;
-    return function () {
-	var i;
-	for (i = 0; i < arglen; i++) {
-	    arguments = [fns[i].apply(this, arguments)];
-	}
-	return arguments[0];
-    };
-};
-
-//+ memoize :: f -> g
-memoize = function (fn) {  
-    return function () {  
-        var args = Array.prototype.slice.call(arguments),  
-            hash = "",  
-            i = args.length;  
-        currentArg = null;  
-        while (i--) {  
-            currentArg = args[i];  
-            hash += (currentArg === Object(currentArg)) ?  
-		JSON.stringify(currentArg) : currentArg;  
-            fn.memoize || (fn.memoize = {});  
-        }  
-        return (hash in fn.memoize) ? fn.memoize[hash] :  
-	    fn.memoize[hash] = fn.apply(this, args);  
-    };  
-};
-
-//+ guard :: (_ -> Bool) -> f -> g -> h
-guard = function (guard, fn, otherwise) {
-    guard = Function.toFunction(guard || I);
-    fn = Function.toFunction(fn);
-    otherwise = Function.toFunction(otherwise || I);
-    return function () {
-	return (guard.apply(this, arguments) ? fn : otherwise)
-	    .apply(this, arguments);
+        var i, returnValue = fns[numFns -1].apply(this, arguments);
+        for (i = numFns - 2; i > -1; i--) {
+            returnValue = fns[i](returnValue);
+        }
+        return returnValue;
     };
 }.autoCurry();
+
+//+ pluck :: String -> a -> b
+pluck = function (name, obj) {
+    return obj[name];
+}.autoCurry();
+
+//+ sequence :: f -> g -> h
+// sequence = function () {
+//     var fns = map(Function.toFunction, arguments),
+//         arglen = fns.length;
+//     return function () {
+// 	var i;
+// 	for (i = 0; i < arglen; i++) {
+// 	    arguments = [fns[i].apply(this, arguments)];
+// 	}
+// 	return arguments[0];
+//     };
+// };
+
+//+ memoize :: f -> g
+// memoize = function (fn) {  
+//     return function () {  
+//         var args = Array.prototype.slice.call(arguments),  
+//             hash = "",  
+//             i = args.length;  
+//         currentArg = null;  
+//         while (i--) {  
+//             currentArg = args[i];  
+//             hash += (currentArg === Object(currentArg)) ?  
+// 		JSON.stringify(currentArg) : currentArg;  
+//             fn.memoize || (fn.memoize = {});  
+//         }  
+//         return (hash in fn.memoize) ? fn.memoize[hash] :  
+// 	    fn.memoize[hash] = fn.apply(this, args);  
+//     };  
+// };
+
+//+ guard :: (_ -> Bool) -> f -> g -> h
+// guard = function (guard, fn, otherwise) {
+//     guard = Function.toFunction(guard || I);
+//     fn = Function.toFunction(fn);
+//     otherwise = Function.toFunction(otherwise || I);
+//     return function () {
+// 	return (guard.apply(this, arguments) ? fn : otherwise)
+// 	    .apply(this, arguments);
+//     };
+// }.autoCurry();
 
 //+ flip :: f -> g 
 flip = function(f) {
@@ -142,18 +151,6 @@ flip = function(f) {
 	return f.apply(null, args);
     };
 };
-
-//+ foldr :: f -> a -> [a] -> a
-foldr = function (fn, init, sequence) {
-    var len = sequence.length,
-        result = init,
-        i;
-    fn = Function.toFunction(fn);
-    for(i = len; --i >= 0;) {
-	result = fn.apply(null, [sequence[i],result]);
-    }
-    return result;
-}.autoCurry();
 
 //+ and :: _ -> (_ -> Bool)
 and = function () {
@@ -248,11 +245,6 @@ invoke = function (methodName) {
     };
 };
 
-//+ pluck :: String -> a -> b
-pluck = function (name, obj) {
-    return obj[name];
-}.autoCurry();
-
 //+ until :: a -> f -> (b -> c)
 until = function (pred, fn) {
     fn = Function.toFunction(fn);
@@ -298,11 +290,7 @@ S = function(f, g) {
 
 // Add public functions to the module namespace,
 fun.compose = compose;
-fun.sequence = sequence;
-fun.memoize = memoize;
-fun.guard = guard;
 fun.flip = flip;
-fun.foldr = foldr;
 fun.and = and;
 fun.and_ = and; // alias reserved word for coffeescript
 fun.or = or;
@@ -326,11 +314,13 @@ fun.S = S;
 
 fun.globalize = function(globalObj) {
     [
-	"isNull"
+	"id"
+	, "isNull"
 	, "isDefined"
 	, "reduce"
 	, "map"
 	, "filter"
+	, "compose"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });
