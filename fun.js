@@ -17,7 +17,7 @@ var slice = Array.prototype.slice;
 
 //+ isNull :: a -> Boolean
 var isNull = function(obj) {
-	return typeof obj !== 'undefined' && obj != null;
+	return typeof obj !== 'undefined' && obj !== null;
 };
 
 //+ toArray :: a -> [b]
