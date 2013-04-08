@@ -49,6 +49,10 @@ describe("fun.js", function() {
 	it(isGlobalizable, function() {
 	    expect(typeof id).toEqual('function');
 	});
+
+	it("pass input through to output", function() {
+	    expect(id(5)).toEqual(5);
+	});
     });
 
     describe("autoCurry", function() {
