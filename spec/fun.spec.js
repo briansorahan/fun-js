@@ -327,6 +327,17 @@ describe("fun.js", function() {
 	});
     });
 
+    describe("find", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof find).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var findSam = find(compose(identical("sam"), pluck("name")));
+	    expect(findSam(users).comments).toBe(31);
+	});
+    });
+
     describe("equal", function() {
 	it(isGlobalizable, function() {
 	    expect(typeof equal).toEqual('function');

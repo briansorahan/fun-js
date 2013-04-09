@@ -166,6 +166,15 @@ fun.all = function (f, xs) {
     }, true, xs) : false;
 }.autoCurry();
 
+fun.find = function(f, xs) {
+    var len = xs.length;
+    for (var i = 0; i < len; i++) {
+	var x = xs[i];
+	if (f(x)) return x;
+    }
+    return undefined;
+}.autoCurry();
+
 //+ equal :: a -> a -> Boolean
 // Note: type coercion
 fun.equal = function (x, y) {
@@ -208,17 +217,10 @@ fun.decr = function(x) {
     return typeof x === 'number' ? x - 1 : undefined;
 };
 
-//+ zip :: (List ...) => [a] -> [b] -> ... -> [[a, b, ...]]
-zip = function() {
-    var n = Math.min.apply(null, map('.length',arguments)),
-        results = new Array(n),
-        key, i;
-    for (i = 0; i < n; i++) {
-	key = String(i);
-	results[key] = map(pluck(key), arguments);
-    };
-    return results;
-};
+//+ zip :: (a -> b -> _) -> [a] -> [b] -> _
+fun.zip = function(f, xs, ys) {
+    
+}.autoCurry();
 
 fun.globalize = function(globalObj) {
     [
@@ -238,6 +240,7 @@ fun.globalize = function(globalObj) {
 	, "empty"
 	, "head"
 	, "tail"
+	, "find"
 	, "any"
 	, "all"
 	, "equal"
