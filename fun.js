@@ -15,16 +15,17 @@
 var fun = {};
 var slice = Array.prototype.slice;
 
-//+ id :: a -> a
+//+ id :: _ -> _
 fun.id = function(x) {
     return x;
 };
 
-//+ isNull :: a -> Boolean
+//+ isNull :: _ -> Boolean
 fun.isNull = function(obj) {
     return obj === null;
 };
 
+//+ isDefined :: _ -> Boolean
 fun.isDefined = function(obj) {
     return typeof obj !== 'undefined';
 };
@@ -83,7 +84,7 @@ fun.reduce = function (f, initialValue, xs) {
 }.autoCurry();
 
 //+ compose :: f -> g -> h 
-compose = function () {
+fun.compose = function () {
     var fns = toArray(arguments), numFns = fns.length;
     return function () {
         var i, returnValue = fns[numFns -1].apply(this, arguments);
@@ -94,167 +95,97 @@ compose = function () {
     };
 }.autoCurry();
 
-//+ pluck :: String -> a -> b
-pluck = function (name, obj) {
+//+ pluck :: String -> Object -> _
+fun.pluck = function (name, obj) {
     return obj[name];
 }.autoCurry();
 
-//+ sequence :: f -> g -> h
-// sequence = function () {
-//     var fns = map(Function.toFunction, arguments),
-//         arglen = fns.length;
-//     return function () {
-// 	var i;
-// 	for (i = 0; i < arglen; i++) {
-// 	    arguments = [fns[i].apply(this, arguments)];
-// 	}
-// 	return arguments[0];
-//     };
-// };
-
-//+ memoize :: f -> g
-// memoize = function (fn) {  
-//     return function () {  
-//         var args = Array.prototype.slice.call(arguments),  
-//             hash = "",  
-//             i = args.length;  
-//         currentArg = null;  
-//         while (i--) {  
-//             currentArg = args[i];  
-//             hash += (currentArg === Object(currentArg)) ?  
-// 		JSON.stringify(currentArg) : currentArg;  
-//             fn.memoize || (fn.memoize = {});  
-//         }  
-//         return (hash in fn.memoize) ? fn.memoize[hash] :  
-// 	    fn.memoize[hash] = fn.apply(this, args);  
-//     };  
-// };
-
-//+ guard :: (_ -> Bool) -> f -> g -> h
-// guard = function (guard, fn, otherwise) {
-//     guard = Function.toFunction(guard || I);
-//     fn = Function.toFunction(fn);
-//     otherwise = Function.toFunction(otherwise || I);
-//     return function () {
-// 	return (guard.apply(this, arguments) ? fn : otherwise)
-// 	    .apply(this, arguments);
-//     };
-// }.autoCurry();
+//+ has :: String -> Object -> Boolean
+fun.has = function(name, obj) {
+    return obj.hasOwnProperty(name);
+}.autoCurry();
 
 //+ flip :: f -> g 
-flip = function(f) {
+fun.flip = function(f) {
     return function () {
-	var args = slice.call(arguments, 0);
-	args = args.slice(1, 2)
-            .concat(args.slice(0, 1))
-            .concat(args.slice(2));
-	return f.apply(null, args);
+	return f(arguments[1], arguments[0]);
     };
 };
 
-//+ and :: _ -> (_ -> Bool)
-and = function () {
-    var args = map(Function.toFunction, arguments),
-        arglen = args.length;
+//+ and :: _ ... -> Boolean
+fun.and = function () {
+    var args = slice.call(arguments);
     return function () {
-	var value = true, i;
-	for (i = 0; i < arglen; i++) {
-	    if(!(value = args[i].apply(this, arguments)))
-		break;
-	}
-	return value;
+	return reduce(function(acc, v) {
+	    return acc && v;
+	}, true, args.concat(slice.call(arguments)));
     };
-};
-
-//+ or :: _ -> (_ -> Bool)
-or = function () {
-    var args = map(Function.toFunction, arguments),
-        arglen = args.length;
-    return function () {
-	var value = false, i;
-	for (i = 0; i < arglen; i++) {
-	    if ((value = args[i].apply(this, arguments)))
-		break;
-	}
-	return value;
-    };
-};
-
-//+ some :: f -> [a] -> Bool
-some = function (fn, sequence) {
-    fn = Function.toFunction(fn);
-    var len = sequence.length,
-        value = false,
-        i;
-    for (i = 0; i < len; i++) {
-	if ((value = fn.call(null, sequence[i])))
-	    break;
-    }
-    return value;
 }.autoCurry();
 
-//+ every :: f -> [a] -> Bool
-every = function (fn, sequence) {
-    fn = Function.toFunction(fn);
-    var len = sequence.length,
-        value = true,
-        i;
-    for (i = 0; i < len; i++) {
-	if (!(value = fn.call(null, sequence[i])))
-	    break;
-    }
-    return value;
+//+ or :: _ ... -> Boolean
+fun.or = function () {
+    var args = slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc || v;
+	}, false, args.concat(slice.call(arguments)));
+    };
 }.autoCurry();
 
-//+ not :: f -> (_ -> Bool)
-not = function (fn) {
-    fn = Function.toFunction(fn);
-    return function () {
-	return !fn.apply(null, arguments);
-    };
+//+ not :: _ -> Boolean
+fun.not = function(x) {
+    return !x;
 };
 
-//+ equal :: _ -> (_ -> Bool)
-equal = function () {
-    var arglen = arguments.length,
-        args = map(Function.toFunction, arguments);
-    if (!arglen) {
-	return K(true);
-    }
-    return function () {
-	var value = args[0].apply(this, arguments),
-	    i;
-	for (i = 1; i < arglen; i++){
-	    if (value != args[i].apply(this, args))
-		return false;
-	}
-	return true;
-    };
+//+ empty :: Array -> Boolean
+fun.empty = function(xs) {
+    return xs.length === 0;
 };
 
-//+ lamda :: a -> f
-lambda = function (object) { 
-    return object.toFunction(); 
-};
+//+ any :: (a -> Boolean) -> [a] -> Boolean
+fun.any = function (f, xs) {
+    return xs.length ? reduce(function(acc, x) {
+	return acc || f(x);
+    }, false, xs) : false;
+}.autoCurry();
 
-//+ invoke :: String -> (a -> b)
-invoke = function (methodName) { 
-    var args = slice.call(arguments, 1);
-    return function(object) {
-	return object[methodName].apply(object, slice.call(arguments, 1).concat(args));
-    };
-};
+//+ all :: (a -> Boolean) -> [a] -> Boolean
+fun.all = function (f, xs) {
+    return xs.length ? reduce(function(acc, x) {
+	return acc && f(x);
+    }, true, xs) : false;
+}.autoCurry();
 
-//+ until :: a -> f -> (b -> c)
-until = function (pred, fn) {
-    fn = Function.toFunction(fn);
-    pred = Function.toFunction(pred);
-    return function (value) {
-	while (!pred.call(null, value)) {
-	    value = fn.call(null, value);
-	}
-	return value;
-    };
+//+ equal :: a -> a -> Boolean
+// Note: type coercion
+fun.equal = function (x, y) {
+    return x == y;
+}.autoCurry();
+
+//+ identical :: a -> a -> Boolean
+// Note: no type coercion
+fun.identical = function (x, y) {
+    return x === y;
+}.autoCurry();
+
+//+ gt :: a -> a -> Boolean
+fun.gt = function(x, y) {
+    return x < y;
+}.autoCurry();
+
+//+ gte :: a -> a -> Boolean
+fun.gte = function(x, y) {
+    return x <= y;
+}.autoCurry();
+
+//+ lt :: a -> a -> Boolean
+fun.lt = function(x, y) {
+    return x > y;
+}.autoCurry();
+
+//+ lte :: a -> a -> Boolean
+fun.lte = function(x, y) {
+    return x >= y;
 }.autoCurry();
 
 //+ zip :: (List ...) => [a] -> [b] -> ... -> [[a, b, ...]]
@@ -269,49 +200,6 @@ zip = function() {
     return results;
 };
 
-//+ I :: a -> a
-I = function(x) { return x };
-
-//+ K :: a -> (_ -> a)
-K = function(x) { return function () { return x } };
-
-//+ S :: f -> g -> (_ -> b)
-S = function(f, g) {
-    var toFunction = Function.toFunction;
-    f = toFunction(f);
-    g = toFunction(g);
-    return function () { 
-	var return_value_of_g = g.apply(this, arguments)
-        , original_args = slice.call(arguments, 0)
-        , all_args = [return_value_of_g].concat(original_args);
-	return f.apply(this, all_args);
-    };
-};
-
-// Add public functions to the module namespace,
-fun.compose = compose;
-fun.flip = flip;
-fun.and = and;
-fun.and_ = and; // alias reserved word for coffeescript
-fun.or = or;
-fun.or_ = or; // alias reserved word for coffeescript
-fun.some = some;
-fun.every = every;
-fun.not = not;
-fun.not_ = not; // alias reserved word for coffeescript
-fun.equal = equal;
-fun.lambda = lambda;
-fun.invoke = invoke;
-fun.pluck = pluck;
-fun.until = until;
-fun.until_ = until; // alias reserved word for coffeescript
-fun.zip = zip;
-fun.I = I;
-fun.id = I;
-fun.K = K;
-fun.konst = K;
-fun.S = S;
-
 fun.globalize = function(globalObj) {
     [
 	"id"
@@ -322,6 +210,20 @@ fun.globalize = function(globalObj) {
 	, "filter"
 	, "compose"
 	, "pluck"
+	, "has"
+	, "flip"
+	, "and"
+	, "or"
+	, "not"
+	, "empty"
+	, "any"
+	, "all"
+	, "equal"
+	, "identical"
+	, "gt"
+	, "gte"
+	, "lt"
+	, "lte"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });

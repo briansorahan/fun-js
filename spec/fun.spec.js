@@ -33,6 +33,23 @@ describe("fun.js", function() {
 	}
     ];
 
+    var autechre = {
+	title: "Best Band Ever",
+	genre: "really?",
+	location: "Manchester, U.K.",
+	albums: [
+	    "Incunabula",
+	    "Amber",
+	    "Tri Repetae",
+	    "Chiastic Slide",
+	    "LP5",
+	    "Confield",
+	    "Draft 7:30",
+	    "Quaristice",
+	    "Oversteps"
+	]
+    };
+
     var add = function(x, y) {
 	return x + y;
     }.autoCurry();
@@ -50,8 +67,12 @@ describe("fun.js", function() {
 	    expect(typeof id).toEqual('function');
 	});
 
-	it("pass input through to output", function() {
+	it("passes input through to output", function() {
 	    expect(id(5)).toEqual(5);
+	});
+
+	it("only works with a single argument", function() {
+	    expect(id(5, 6)).toEqual(5);
 	});
     });
 
@@ -180,6 +201,181 @@ describe("fun.js", function() {
 
 	it(isCurriable, function() {
 	    expect(map(pluck("id"), users)).toEqual([1,2,3,4,5]);
+	});
+	
+	it("returns undefined for nonexistent keys", function() {
+	    expect(pluck("foo")(autechre)).not.toBeDefined();
+	});
+    });
+
+    describe("flip", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof flip).toEqual('function');
+    	});
+
+    	it("flips the first two arguments of a function", function() {
+	    // var s = function(x, y) { return y - x; };
+    	    var mySubtract = flip(subtract);
+	    var first = 10, second = 4;
+    	    // expect(mySubtract(first, second)).toEqual(subtract(second, first));
+    	    expect(mySubtract(first, second)).toEqual(6);
+    	});
+    });
+
+    describe("and", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof and).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(and(true)(true)).toBe(true);
+	    expect(and(true)(false)).toBe(false);
+	    expect(and(false)(true)).toBe(false);
+	    expect(and(false)(false)).toBe(false);
+	});
+    });
+
+    describe("or", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof or).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(or(false)(false)).toBe(false);
+	    expect(or(true)(false)).toBe(true);
+	    expect(or(false)(true)).toBe(true);
+	    expect(or(true)(true)).toBe(true);
+	});
+    });
+
+    describe("not", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof not).toEqual('function');
+	});
+
+	it("negates its argument", function() {
+	    expect(not(false)).toBe(true);
+	    expect(not(true)).toBe(false);
+	});
+    });
+
+    describe("empty", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof empty).toEqual('function');
+	});
+
+	it("returns true for empty Arrays", function() {
+	    expect(empty([])).toBe(true);
+	});
+
+	it("returns false for non-empty Arrays", function() {
+	    expect(empty([0])).toBe(false);
+	});
+    });
+
+    describe("any", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof any).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var moreThanSeventyComments = any(compose(gt(70), pluck("comments")));
+	    expect(moreThanSeventyComments(users)).toBe(true);
+	});
+    });
+
+    describe("all", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof all).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var ubiquitousID = all(has("id"));
+	    expect(ubiquitousID(users)).toBe(true);
+	});
+
+	it("returns false for the empty list", function() {
+	    expect(all(id, [])).toBe(false);
+	});
+    });
+
+    describe("equal", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof equal).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var equalsSeven = equal(7);
+	    expect(equalsSeven(7)).toBe(true);
+	});
+
+	it("performs type coercion", function() {
+	    expect(equal("0", 0)).toBe(true);
+	});
+    });
+
+    describe("identical", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof identical).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var identicalToSeven = identical(7);
+	    expect(identicalToSeven(7)).toBe(true);
+	});
+
+	it("does not perform type coercion", function() {
+	    expect(identical("0", 0)).toBe(false);
+	});
+    });
+
+    describe("lt", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof lt).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var lessThanSeven = lt(7);
+	    expect(lessThanSeven(4)).toBe(true);
+	    expect(lessThanSeven(8)).toBe(false);
+	});
+    });
+
+    describe("lte", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof lte).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var lessThanOrEqualToSeven = lte(7);
+	    expect(lessThanOrEqualToSeven(4)).toBe(true);
+	    expect(lessThanOrEqualToSeven(7)).toBe(true);
+	    expect(lessThanOrEqualToSeven(8)).toBe(false);
+	});
+    });
+
+    describe("gt", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof gt).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var greaterThanSeven = gt(7);
+	    expect(greaterThanSeven(8)).toBe(true);
+	    expect(greaterThanSeven(4)).toBe(false);
+	});
+    });
+
+    describe("gte", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof gte).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var greaterThanOrEqualToSeven = gte(7);
+	    expect(greaterThanOrEqualToSeven(8)).toBe(true);
+	    expect(greaterThanOrEqualToSeven(7)).toBe(true);
+	    expect(greaterThanOrEqualToSeven(4)).toBe(false);
 	});
     });
 });
