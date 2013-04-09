@@ -142,6 +142,16 @@ fun.empty = function(xs) {
     return xs.length === 0;
 };
 
+//+ head :: [a] -> a
+fun.head = function(xs) {
+    return xs.length ? xs[0] : undefined;
+};
+
+//+ tail :: [a] -> a
+fun.tail = function(xs) {
+    return xs.length ? slice.call(xs, 1) : [];
+};
+
 //+ any :: (a -> Boolean) -> [a] -> Boolean
 fun.any = function (f, xs) {
     return xs.length ? reduce(function(acc, x) {
@@ -188,6 +198,16 @@ fun.lte = function(x, y) {
     return x >= y;
 }.autoCurry();
 
+//+ incr :: Int -> Int
+fun.incr = function(x) {
+    return typeof x === 'number' ? x + 1 : undefined;
+};
+
+//+ decr :: Int -> Int
+fun.decr = function(x) {
+    return typeof x === 'number' ? x - 1 : undefined;
+};
+
 //+ zip :: (List ...) => [a] -> [b] -> ... -> [[a, b, ...]]
 zip = function() {
     var n = Math.min.apply(null, map('.length',arguments)),
@@ -216,6 +236,8 @@ fun.globalize = function(globalObj) {
 	, "or"
 	, "not"
 	, "empty"
+	, "head"
+	, "tail"
 	, "any"
 	, "all"
 	, "equal"
@@ -224,6 +246,8 @@ fun.globalize = function(globalObj) {
 	, "gte"
 	, "lt"
 	, "lte"
+	, "incr"
+	, "decr"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });

@@ -273,6 +273,34 @@ describe("fun.js", function() {
 	});
     });
 
+    describe("head", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof head).toEqual('function');
+	});
+
+	it("returns undefined for empty Arrays", function() {
+	    expect(head([])).toBe(undefined);
+	});
+
+	it("returns the first element of an Array", function() {
+	    expect(head([0])).toEqual(0);
+	});
+    });
+
+    describe("tail", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof tail).toEqual('function');
+	});
+
+	it("returns an empty Array for empty Arrays", function() {
+	    expect(tail([])).toEqual([]);
+	});
+
+	it("returns [].slice(1) for non-empty Arrays", function() {
+	    expect(tail([0,1,2])).toEqual([1,2]);
+	});
+    });
+
     describe("any", function() {
 	it(isGlobalizable, function() {
 	    expect(typeof any).toEqual('function');
@@ -376,6 +404,34 @@ describe("fun.js", function() {
 	    expect(greaterThanOrEqualToSeven(8)).toBe(true);
 	    expect(greaterThanOrEqualToSeven(7)).toBe(true);
 	    expect(greaterThanOrEqualToSeven(4)).toBe(false);
+	});
+    });
+
+    describe("incr", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof incr).toEqual('function');
+	});
+
+	it("returns undefined for non-numeric arguments", function() {
+	    expect(incr("foo")).not.toBeDefined();
+	});
+
+	it("adds 1 to its argument", function() {
+	    expect(incr(1)).toEqual(2);
+	});
+    });
+
+    describe("decr", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof decr).toEqual('function');
+	});
+
+	it("returns undefined for non-numeric arguments", function() {
+	    expect(decr("foo")).not.toBeDefined();
+	});
+
+	it("subtracts 1 from its argument", function() {
+	    expect(decr(1)).toEqual(0);
 	});
     });
 });
