@@ -20,6 +20,10 @@ fun.id = function(x) {
     return x;
 };
 
+////////////////////////////////////////////////////////////////////////////////
+// type checking
+////////////////////////////////////////////////////////////////////////////////
+
 //+ isNull :: _ -> Boolean
 fun.isNull = function(obj) {
     return obj === null;
@@ -29,6 +33,29 @@ fun.isNull = function(obj) {
 fun.isDefined = function(obj) {
     return typeof obj !== 'undefined';
 };
+
+//+ isArray :: _ -> Boolean
+fun.isArray = function(obj) {
+    return fun.isDefined(obj) && (! fun.isNull(obj))
+	&& (typeof obj === 'object')
+	&& (obj.constructor == Array);
+};
+
+//+ isObject :: _ -> Boolean
+fun.isObject = function(obj) {
+    return ((typeof obj === "object") && (! fun.isArray(obj)));
+};
+
+//+ isNumber :: _ -> Boolean
+fun.isNumber = function(n) {
+    return (typeof n === 'number')
+	&& !isNaN(parseFloat(n))
+	&& isFinite(n);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// functions
+////////////////////////////////////////////////////////////////////////////////
 
 //+ toArray :: a -> [b]
 var toArray = function (arrish, n) {
@@ -67,6 +94,29 @@ Function.prototype.autoCurry = function(n) {
     return autoCurry(this, n);
 };
 
+//+ compose :: f -> g -> h 
+fun.compose = function () {
+    var fns = toArray(arguments), numFns = fns.length;
+    return function () {
+        var i, returnValue = fns[numFns -1].apply(this, arguments);
+        for (i = numFns - 2; i > -1; i--) {
+            returnValue = fns[i](returnValue);
+        }
+        return returnValue;
+    };
+}.autoCurry();
+
+//+ flip :: f -> g 
+fun.flip = function(f) {
+    return function () {
+	return f(arguments[1], arguments[0]);
+    };
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Array
+////////////////////////////////////////////////////////////////////////////////
+
 //+ map :: (a -> b) -> [a] -> [b]
 fun.map = function (fn, xs) {
     return xs.map(fn);
@@ -83,17 +133,57 @@ fun.reduce = function (f, initialValue, xs) {
     return xs.reduce(f, initialValue);
 }.autoCurry();
 
-//+ compose :: f -> g -> h 
-fun.compose = function () {
-    var fns = toArray(arguments), numFns = fns.length;
-    return function () {
-        var i, returnValue = fns[numFns -1].apply(this, arguments);
-        for (i = numFns - 2; i > -1; i--) {
-            returnValue = fns[i](returnValue);
-        }
-        return returnValue;
-    };
+//+ empty :: Array -> Boolean
+fun.empty = function(xs) {
+    return xs.length === 0;
+};
+
+//+ head :: [a] -> a
+fun.head = function(xs) {
+    return xs.length ? xs[0] : undefined;
+};
+
+//+ tail :: [a] -> a
+fun.tail = function(xs) {
+    return xs.length ? slice.call(xs, 1) : [];
+};
+
+//+ any :: (a -> Boolean) -> [a] -> Boolean
+fun.any = function (f, xs) {
+    return xs.length ? fun.reduce(function(acc, x) {
+	return acc || f(x);
+    }, false, xs) : false;
 }.autoCurry();
+
+//+ all :: (a -> Boolean) -> [a] -> Boolean
+fun.all = function (f, xs) {
+    return xs.length ? fun.reduce(function(acc, x) {
+	return acc && f(x);
+    }, true, xs) : false;
+}.autoCurry();
+
+fun.find = function(f, xs) {
+    var len = xs.length;
+    for (var i = 0; i < len; i++) {
+	var x = xs[i];
+	if (f(x)) return x;
+    }
+    return undefined;
+}.autoCurry();
+
+//+ zip :: (a -> b -> _) -> [a] -> [b] -> _
+fun.zip = function(f, xs, ys) {
+    var len = Math.min(xs.length, ys.length);
+    var result = [];
+    for (var i = 0; i < len; i++) {
+	result[i] = f(xs[i], ys[i]);
+    }
+    return result;
+}.autoCurry();
+
+////////////////////////////////////////////////////////////////////////////////
+// Object
+////////////////////////////////////////////////////////////////////////////////
 
 //+ pluck :: String -> Object -> _
 fun.pluck = function (name, obj) {
@@ -105,12 +195,9 @@ fun.has = function(name, obj) {
     return obj.hasOwnProperty(name);
 }.autoCurry();
 
-//+ flip :: f -> g 
-fun.flip = function(f) {
-    return function () {
-	return f(arguments[1], arguments[0]);
-    };
-};
+////////////////////////////////////////////////////////////////////////////////
+// Logic
+////////////////////////////////////////////////////////////////////////////////
 
 //+ and :: _ ... -> Boolean
 fun.and = function () {
@@ -137,43 +224,9 @@ fun.not = function(x) {
     return !x;
 };
 
-//+ empty :: Array -> Boolean
-fun.empty = function(xs) {
-    return xs.length === 0;
-};
-
-//+ head :: [a] -> a
-fun.head = function(xs) {
-    return xs.length ? xs[0] : undefined;
-};
-
-//+ tail :: [a] -> a
-fun.tail = function(xs) {
-    return xs.length ? slice.call(xs, 1) : [];
-};
-
-//+ any :: (a -> Boolean) -> [a] -> Boolean
-fun.any = function (f, xs) {
-    return xs.length ? reduce(function(acc, x) {
-	return acc || f(x);
-    }, false, xs) : false;
-}.autoCurry();
-
-//+ all :: (a -> Boolean) -> [a] -> Boolean
-fun.all = function (f, xs) {
-    return xs.length ? reduce(function(acc, x) {
-	return acc && f(x);
-    }, true, xs) : false;
-}.autoCurry();
-
-fun.find = function(f, xs) {
-    var len = xs.length;
-    for (var i = 0; i < len; i++) {
-	var x = xs[i];
-	if (f(x)) return x;
-    }
-    return undefined;
-}.autoCurry();
+////////////////////////////////////////////////////////////////////////////////
+// Comparison
+////////////////////////////////////////////////////////////////////////////////
 
 //+ equal :: a -> a -> Boolean
 // Note: type coercion
@@ -207,6 +260,10 @@ fun.lte = function(x, y) {
     return x >= y;
 }.autoCurry();
 
+////////////////////////////////////////////////////////////////////////////////
+// Number
+////////////////////////////////////////////////////////////////////////////////
+
 //+ incr :: Int -> Int
 fun.incr = function(x) {
     return typeof x === 'number' ? x + 1 : undefined;
@@ -217,21 +274,21 @@ fun.decr = function(x) {
     return typeof x === 'number' ? x - 1 : undefined;
 };
 
-//+ zip :: (a -> b -> _) -> [a] -> [b] -> _
-fun.zip = function(f, xs, ys) {
-    var len = Math.min(xs.length, ys.length);
-    var result = [];
-    for (var i = 0; i < len; i++) {
-	result[i] = f(xs[i], ys[i]);
-    }
-    return result;
+fun.min = function() {
+    var args = slice.call(arguments);
+    return Math.min.apply(this, args);
 }.autoCurry();
 
+// Make functions globally available as properties of an object
+// (e.g. -- window, global)
 fun.globalize = function(globalObj) {
     [
 	"id"
 	, "isNull"
 	, "isDefined"
+	, "isNumber"
+	, "isArray"
+	, "isObject"
 	, "reduce"
 	, "map"
 	, "filter"

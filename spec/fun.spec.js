@@ -76,21 +76,9 @@ describe("fun.js", function() {
 	});
     });
 
-    describe("autoCurry", function() {
-	it("can be called on any Function object", function() {
-	    expect(typeof Function.prototype.autoCurry).toEqual('function');
-	});
-
-	it("can be partially applied with one argument", function() {
-	    var add1 = add(1);
-	    expect(add1(1)).toEqual(2);
-	});
-
-	it("can be partially applied with more than one argument", function() {
-	    var add4 = add3(2, 2);
-	    expect(add4(1)).toEqual(5);
-	});
-    });
+////////////////////////////////////////////////////////////////////////////////
+// type-checking
+////////////////////////////////////////////////////////////////////////////////
 
     describe("isNull", function() {
 	it(isGlobalizable, function() {
@@ -134,6 +122,76 @@ describe("fun.js", function() {
 	it("returns true for the empty string", function() {
 	    expect(isDefined("")).toBe(true);
 	});
+    });
+
+    describe("isNumber", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof isNumber).toEqual('function');
+	});
+	
+	it("returns false for undefined and null", function() {
+	    expect(isNumber(undefined)).toBe(false);
+	    expect(isNumber(null)).toBe(false);
+	});
+	
+	it("returns true for integers and floats", function() {
+	    expect(isNumber(0)).toBe(true);
+	    expect(isNumber(0.1)).toBe(true);
+	});
+	
+	it("returns false for the objects, arrays, functions", function() {
+	    expect(isNumber({})).toBe(false);
+	    expect(isNumber([])).toBe(false);
+	    expect(isNumber(function() {})).toBe(false);
+	});
+    });
+
+    describe("isArray", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof isArray).toEqual('function');
+    	});
+	
+    	it("returns false for undefined", function() {
+    	    expect(isArray(undefined)).toBe(false);
+    	});
+	
+    	it("returns false for null", function() {
+    	    expect(isArray(null)).toBe(false);
+    	});
+	
+    	it("returns false for numbers, objects, functions", function() {
+    	    expect(isArray(0)).toBe(false);
+    	    expect(isArray({})).toBe(false);
+    	    expect(isArray(function() {})).toBe(false);
+    	});
+	
+    	it("returns true for the arrays", function() {
+    	    expect(isArray([])).toBe(true);
+    	});
+    });
+
+    describe("isObject", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof isObject).toEqual('function');
+    	});
+	
+    	it("returns false for undefined", function() {
+    	    expect(isObject(undefined)).toBe(false);
+    	});
+
+    	it("returns false for number, array, function", function() {
+    	    expect(isObject(3)).toBe(false);
+    	    expect(isObject([])).toBe(false);
+    	    expect(isObject(function() {})).toBe(false);
+    	});
+	
+    	it("returns true for null", function() {
+    	    expect(isObject(null)).toBe(true);
+    	});
+
+    	it("returns true for object", function() {
+    	    expect(isObject({})).toBe(true);
+    	});
     });
 
     describe("reduce", function() {
@@ -180,6 +238,26 @@ describe("fun.js", function() {
 
 	    var wellCommented = filter(_wellCommented);
 	    expect(wellCommented(users).length).toEqual(2);
+	});
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+// Function
+////////////////////////////////////////////////////////////////////////////////
+
+    describe("autoCurry", function() {
+	it("can be called on any Function object", function() {
+	    expect(typeof Function.prototype.autoCurry).toEqual('function');
+	});
+
+	it("can be partially applied with one argument", function() {
+	    var add1 = add(1);
+	    expect(add1(1)).toEqual(2);
+	});
+
+	it("can be partially applied with more than one argument", function() {
+	    var add4 = add3(2, 2);
+	    expect(add4(1)).toEqual(5);
 	});
     });
 
