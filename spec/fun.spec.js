@@ -445,5 +445,34 @@ describe("fun.js", function() {
 	    expect(decr(1)).toEqual(0);
 	});
     });
+
+    describe("zip", function() {
+	var nums1 = [1,1,2,3,5,8,13];
+	var nums2 = [0,1,2,3,4];
+	var zipSum = [1,2,4,6,9];
+	var sumTwo; // add up two lists
+	var result;
+	
+	beforeEach(function() {
+	    sumTwo = zip(add);
+	    result = sumTwo(nums1, nums2);
+	});
+
+	it(isGlobalizable, function() {
+	    expect(typeof zip).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(typeof sumTwo).toEqual('function');
+	});
+
+	it("returns a list whose length is equal to the shorter of the two input lists", function() {
+	    expect(sumTwo(nums1, nums2).length).toEqual(nums2.length);
+	});
+
+	it("applies the given function to pairs of elements of the input lists", function() {
+	    expect(sumTwo(nums1, nums2)).toEqual(zipSum);
+	});
+    });
 });
 

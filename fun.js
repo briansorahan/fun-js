@@ -219,7 +219,12 @@ fun.decr = function(x) {
 
 //+ zip :: (a -> b -> _) -> [a] -> [b] -> _
 fun.zip = function(f, xs, ys) {
-    
+    var len = Math.min(xs.length, ys.length);
+    var result = [];
+    for (var i = 0; i < len; i++) {
+	result[i] = f(xs[i], ys[i]);
+    }
+    return result;
 }.autoCurry();
 
 fun.globalize = function(globalObj) {
@@ -251,6 +256,7 @@ fun.globalize = function(globalObj) {
 	, "lte"
 	, "incr"
 	, "decr"
+	, "zip"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });
