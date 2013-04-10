@@ -54,7 +54,7 @@ fun.isNumber = function(n) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// functions
+// Function
 ////////////////////////////////////////////////////////////////////////////////
 
 //+ toArray :: a -> [b]
@@ -128,9 +128,13 @@ fun.filter = function (fn, xs) {
 }.autoCurry();
 
 //+ reduce :: (a -> b -> b) -> [b] -> b
-//+ reduce :: (a -> b -> b) -> b -> [b] -> b
 fun.reduce = function (f, initialValue, xs) {
     return xs.reduce(f, initialValue);
+}.autoCurry();
+
+//+ reduceRight :: (a -> b -> b) -> [b] -> b
+fun.reduceRight = function (f, initialValue, xs) {
+    return xs.reduceRight(f, initialValue);
 }.autoCurry();
 
 //+ empty :: Array -> Boolean
@@ -148,18 +152,19 @@ fun.tail = function(xs) {
     return xs.length ? slice.call(xs, 1) : [];
 };
 
+//+ concat :: [_] -> [_] -> [_]
+fun.concat = function(xs, ys) {
+    return xs.concat(ys);
+}.autoCurry();
+
 //+ any :: (a -> Boolean) -> [a] -> Boolean
 fun.any = function (f, xs) {
-    return xs.length ? fun.reduce(function(acc, x) {
-	return acc || f(x);
-    }, false, xs) : false;
+    return xs.some(f);
 }.autoCurry();
 
 //+ all :: (a -> Boolean) -> [a] -> Boolean
 fun.all = function (f, xs) {
-    return xs.length ? fun.reduce(function(acc, x) {
-	return acc && f(x);
-    }, true, xs) : false;
+    return xs.every(f);
 }.autoCurry();
 
 fun.find = function(f, xs) {
@@ -181,6 +186,16 @@ fun.zip = function(f, xs, ys) {
     return result;
 }.autoCurry();
 
+//+ join :: String -> Array -> String
+fun.join = function(string, xs) {
+    return xs.join(string);
+}.autoCurry();
+
+//+ slice :: Int -> Int -> Array -> Array
+fun.slice = function(lb, ub, xs) {
+    return xs.slice(lb, ub);
+}.autoCurry();
+
 ////////////////////////////////////////////////////////////////////////////////
 // Object
 ////////////////////////////////////////////////////////////////////////////////
@@ -193,6 +208,11 @@ fun.pluck = function (name, obj) {
 //+ has :: String -> Object -> Boolean
 fun.has = function(name, obj) {
     return obj.hasOwnProperty(name);
+}.autoCurry();
+
+//+ instanceOf :: Object -> Object -> Boolean
+fun.instanceOf = function(constructor, obj) {
+    return obj instanceof constructor;
 }.autoCurry();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -274,10 +294,40 @@ fun.decr = function(x) {
     return typeof x === 'number' ? x - 1 : undefined;
 };
 
+//+ min :: Number ... -> Number
 fun.min = function() {
-    var args = slice.call(arguments);
-    return Math.min.apply(this, args);
+    return Math.min.apply(null, arguments);
+};
+
+//+ max :: Number ... -> Number
+fun.max = function() {
+    return Math.max.apply(null, arguments);
+};
+
+//+ pow :: Number ... -> Number
+fun.pow = function(exponent, base) {
+    return Math.pow(base, exponent);
 }.autoCurry();
+
+////////////////////////////////////////////////////////////////////////////////
+// String
+////////////////////////////////////////////////////////////////////////////////
+
+//+ strcat :: String -> String -> String
+fun.strcat = function(s, t) {
+    return t.concat(s);
+}.autoCurry();
+
+// not yet implemented in node v0.10.0
+// fun.contains = function(s, t) {
+//     return t.contains(s);
+// }.autoCurry();
+
+////////////////////////////////////////////////////////////////////////////////
+// RegExp
+////////////////////////////////////////////////////////////////////////////////
+
+
 
 // Make functions globally available as properties of an object
 // (e.g. -- window, global)
@@ -289,12 +339,17 @@ fun.globalize = function(globalObj) {
 	, "isNumber"
 	, "isArray"
 	, "isObject"
-	, "reduce"
 	, "map"
 	, "filter"
+	, "reduce"
+	, "reduceRight"
+	, "zip"
+	, "join"
+	, "slice"
 	, "compose"
 	, "pluck"
 	, "has"
+	, "instanceOf"
 	, "flip"
 	, "and"
 	, "or"
@@ -313,7 +368,11 @@ fun.globalize = function(globalObj) {
 	, "lte"
 	, "incr"
 	, "decr"
-	, "zip"
+	, "min"
+	, "max"
+	, "pow"
+	, "strcat"
+	// , "contains"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });

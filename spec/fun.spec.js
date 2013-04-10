@@ -194,146 +194,94 @@ describe("fun.js", function() {
     	});
     });
 
+////////////////////////////////////////////////////////////////////////////////
+// Array
+////////////////////////////////////////////////////////////////////////////////
+
     describe("reduce", function() {
+	var _mostComments = function(current, candidate) {
+	    return candidate.comments > current.comments ? candidate : current;
+	};
+
+	var mostComments = reduce(_mostComments, {comments: 0});
+
 	it(isGlobalizable, function() {
 	    expect(typeof reduce).toEqual('function');
 	});
 	
 	it(isCurriable, function() {
-	    var _mostComments = function(current, candidate) {
-		return candidate.comments > current.comments ? candidate : current;
-	    };
+	    expect(typeof mostComments).toEqual("function");
+	});
 
-	    var mostComments = reduce(_mostComments, {comments: 0});
-	    expect(mostComments(users).name).toEqual("brian");
+	it("functions exactly like the builtin Array.reduce", function() {
+	    var result = users.reduce(_mostComments);
+	    expect(mostComments(users)).toEqual(result);
+	});
+    });
+
+    describe("reduceRight", function() {
+	var _totalComments = function(acc, user) {
+	    return acc + user.comments;
+	};
+
+	var totalComments = reduceRight(_totalComments, 0);
+
+	it(isGlobalizable, function() {
+	    expect(typeof reduceRight).toEqual('function');
+	});
+	
+	it(isCurriable, function() {
+	    expect(typeof totalComments).toEqual("function");
+	});
+
+	it("functions exactly like the builtin Array.reduceRight", function() {
+	    var result = users.reduceRight(_totalComments, 0);
+	    expect(totalComments(users)).toEqual(result);
 	});
     });
 
     describe("map", function() {
+	var xs = [
+	    {val: 0, str: "0"},
+	    {val: 1, str: "1"},
+	    {val: 2, str: "2"}
+	];
+
+	var _mapf = pluck("val");
+	var toNumbers = map(_mapf);
+
 	it(isGlobalizable, function() {
 	    expect(typeof map).toEqual('function');
 	});
 
 	it(isCurriable, function() {
-	    var xs = [
-		{val: 0, str: "0"},
-		{val: 1, str: "1"},
-		{val: 2, str: "2"}
-	    ];
+	    expect(typeof toNumbers).toEqual('function');
+	});
 
-	    var toNumbers = map(pluck("val"));
-	    expect(toNumbers(xs)).toEqual([0, 1, 2]);
+	it("functions exactly like the builtin Array.map", function() {
+	    var result = xs.map(_mapf);
+	    expect(toNumbers(xs)).toEqual(result);
 	});
     });
 
     describe("filter", function() {
+	var _wellCommented = function(user) {
+	    return user.comments > 40;
+	};
+
+	var wellCommented = filter(_wellCommented);
+
 	it(isGlobalizable, function() {
 	    expect(typeof filter).toEqual('function');
 	});
 
 	it(isCurriable, function() {
-	    var _wellCommented = function(user) {
-		return user.comments > 40;
-	    };
-
-	    var wellCommented = filter(_wellCommented);
-	    expect(wellCommented(users).length).toEqual(2);
-	});
-    });
-
-////////////////////////////////////////////////////////////////////////////////
-// Function
-////////////////////////////////////////////////////////////////////////////////
-
-    describe("autoCurry", function() {
-	it("can be called on any Function object", function() {
-	    expect(typeof Function.prototype.autoCurry).toEqual('function');
+	    expect(typeof wellCommented).toEqual('function');
 	});
 
-	it("can be partially applied with one argument", function() {
-	    var add1 = add(1);
-	    expect(add1(1)).toEqual(2);
-	});
-
-	it("can be partially applied with more than one argument", function() {
-	    var add4 = add3(2, 2);
-	    expect(add4(1)).toEqual(5);
-	});
-    });
-
-    describe("compose", function() {
-    	it(isGlobalizable, function() {
-	    expect(typeof compose).toEqual('function');
-	});
-
-	it(isCurriable, function() {
-	    var add2 = compose(subtract(2), add(4));
-	    expect(add2(4)).toEqual(6);
-	});
-    });
-
-    describe("pluck", function() {
-	it(isGlobalizable, function() {
-	    expect(typeof pluck).toEqual('function');
-	});
-
-	it(isCurriable, function() {
-	    expect(map(pluck("id"), users)).toEqual([1,2,3,4,5]);
-	});
-	
-	it("returns undefined for nonexistent keys", function() {
-	    expect(pluck("foo")(autechre)).not.toBeDefined();
-	});
-    });
-
-    describe("flip", function() {
-    	it(isGlobalizable, function() {
-    	    expect(typeof flip).toEqual('function');
-    	});
-
-    	it("flips the first two arguments of a function", function() {
-	    // var s = function(x, y) { return y - x; };
-    	    var mySubtract = flip(subtract);
-	    var first = 10, second = 4;
-    	    // expect(mySubtract(first, second)).toEqual(subtract(second, first));
-    	    expect(mySubtract(first, second)).toEqual(6);
-    	});
-    });
-
-    describe("and", function() {
-	it(isGlobalizable, function() {
-	    expect(typeof and).toEqual('function');
-	});
-
-	it(isCurriable, function() {
-	    expect(and(true)(true)).toBe(true);
-	    expect(and(true)(false)).toBe(false);
-	    expect(and(false)(true)).toBe(false);
-	    expect(and(false)(false)).toBe(false);
-	});
-    });
-
-    describe("or", function() {
-	it(isGlobalizable, function() {
-	    expect(typeof or).toEqual('function');
-	});
-
-	it(isCurriable, function() {
-	    expect(or(false)(false)).toBe(false);
-	    expect(or(true)(false)).toBe(true);
-	    expect(or(false)(true)).toBe(true);
-	    expect(or(true)(true)).toBe(true);
-	});
-    });
-
-    describe("not", function() {
-	it(isGlobalizable, function() {
-	    expect(typeof not).toEqual('function');
-	});
-
-	it("negates its argument", function() {
-	    expect(not(false)).toBe(true);
-	    expect(not(true)).toBe(false);
+	it("functions exactly like the builtin Array.filter", function() {
+	    var result = users.filter(_wellCommented);
+	    expect(wellCommented(users)).toEqual(result);
 	});
     });
 
@@ -380,41 +328,255 @@ describe("fun.js", function() {
     });
 
     describe("any", function() {
+	var moreThanSeventyComments = any(compose(gt(70), pluck("comments")));
+
 	it(isGlobalizable, function() {
 	    expect(typeof any).toEqual('function');
 	});
 
 	it(isCurriable, function() {
-	    var moreThanSeventyComments = any(compose(gt(70), pluck("comments")));
+	    expect(typeof moreThanSeventyComments).toEqual('function');
+	});
+
+	it("functions exactly like the builtin Array.some", function() {
 	    expect(moreThanSeventyComments(users)).toBe(true);
 	});
     });
 
     describe("all", function() {
+	var ubiquitousID = all(has("id"));
+
 	it(isGlobalizable, function() {
 	    expect(typeof all).toEqual('function');
 	});
 
 	it(isCurriable, function() {
-	    var ubiquitousID = all(has("id"));
-	    expect(ubiquitousID(users)).toBe(true);
+	    expect(typeof ubiquitousID).toEqual('function');
 	});
 
-	it("returns false for the empty list", function() {
-	    expect(all(id, [])).toBe(false);
+	it("returns true for the empty list", function() {
+	    expect(all(id, [])).toBe(true);
+	});
+
+	it("functions exactly like the builtin Array.every", function() {
+	    expect(ubiquitousID(users)).toBe(true);
 	});
     });
 
     describe("find", function() {
+	var findSam = find(compose(identical("sam"), pluck("name")));
+
 	it(isGlobalizable, function() {
 	    expect(typeof find).toEqual('function');
 	});
 
 	it(isCurriable, function() {
-	    var findSam = find(compose(identical("sam"), pluck("name")));
+	    expect(typeof findSam).toBe('function');
+	});
+
+	it("finds the first array element that satisfies the predicate", function() {
 	    expect(findSam(users).comments).toBe(31);
 	});
     });
+
+    describe("zip", function() {
+	var nums1 = [1,1,2,3,5,8,13];
+	var nums2 = [0,1,2,3,4];
+	var zipSum = [1,2,4,6,9];
+	var sumTwo; // add up two lists
+	var result;
+	
+	beforeEach(function() {
+	    sumTwo = zip(add);
+	    result = sumTwo(nums1, nums2);
+	});
+
+	it(isGlobalizable, function() {
+	    expect(typeof zip).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(typeof sumTwo).toEqual('function');
+	});
+
+	it("returns a list whose length is equal to the shorter of the two input lists", function() {
+	    expect(sumTwo(nums1, nums2).length).toEqual(nums2.length);
+	});
+
+	it("applies the given function to pairs of elements of the input lists", function() {
+	    expect(sumTwo(nums1, nums2)).toEqual(zipSum);
+	});
+    });
+
+    describe("join", function() {
+	var cities = ["Austin", "Dallas", "Houston"];
+	var result = "Austin:Dallas:Houston";
+	var joinColons = join(":");
+
+	it(isGlobalizable, function() {
+	    expect(typeof join).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(typeof joinColons).toEqual('function');
+	});
+	
+	it("functions exactly like the builtin Array.join", function() {
+	    expect(joinColons(cities)).toEqual(result);
+	});
+    });
+
+    describe("slice", function() {
+	var cities = ["Austin", "Dallas", "Houston", "Lubbock", "Waco"];
+	var lower = 1, upper = cities.length - 1;
+	var sliceMiddle = slice(lower, upper);
+
+	it(isGlobalizable, function() {
+	    expect(typeof slice).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(typeof sliceMiddle).toEqual('function');
+	});
+	
+	it("functions exactly like the builtin Array.slice", function() {
+	    expect(sliceMiddle(cities)).toEqual(cities.slice(lower, upper));
+	});
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+// Function
+////////////////////////////////////////////////////////////////////////////////
+
+    describe("autoCurry", function() {
+	it("can be called on any Function object", function() {
+	    expect(typeof Function.prototype.autoCurry).toEqual('function');
+	});
+
+	it("can be partially applied with one argument", function() {
+	    var add1 = add(1);
+	    expect(add1(1)).toEqual(2);
+	});
+
+	it("can be partially applied with more than one argument", function() {
+	    var add4 = add3(2, 2);
+	    expect(add4(1)).toEqual(5);
+	});
+    });
+
+    describe("compose", function() {
+    	it(isGlobalizable, function() {
+	    expect(typeof compose).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    var add2 = compose(subtract(2), add(4));
+	    expect(add2(4)).toEqual(6);
+	});
+    });
+
+    describe("flip", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof flip).toEqual('function');
+    	});
+
+    	it("flips the first two arguments of a function", function() {
+    	    var mySubtract = flip(subtract);
+	    var first = 10, second = 4;
+    	    expect(mySubtract(first, second)).toEqual(6);
+    	});
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+// Object
+////////////////////////////////////////////////////////////////////////////////
+
+    describe("pluck", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof pluck).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(map(pluck("id"), users)).toEqual([1,2,3,4,5]);
+	});
+	
+	it("returns undefined for nonexistent keys", function() {
+	    expect(pluck("foo")(autechre)).not.toBeDefined();
+	});
+    });
+
+    describe("has", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof has).toEqual('function');
+	});
+
+	it("functions exactly like the builtin Object.hasOwnProperty", function() {
+	    expect(has("foo")(autechre)).toBe(false);
+	    expect(has("albums")(autechre)).toBe(true);
+	});
+    });
+
+    describe("instanceOf", function() {
+	var _isArray = instanceOf(Array);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof instanceOf).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof _isArray).toEqual('function');
+    	});
+	
+    	it("functions exactly like the builtin instanceof operator", function() {
+    	    expect(_isArray(autechre)).toBe(false);
+    	    expect(instanceOf(Object)(autechre)).toBe(true);
+    	});
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+// Logic
+////////////////////////////////////////////////////////////////////////////////
+
+    describe("and", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof and).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(and(true)(true)).toBe(true);
+	    expect(and(true)(false)).toBe(false);
+	    expect(and(false)(true)).toBe(false);
+	    expect(and(false)(false)).toBe(false);
+	});
+    });
+
+    describe("or", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof or).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(or(false)(false)).toBe(false);
+	    expect(or(true)(false)).toBe(true);
+	    expect(or(false)(true)).toBe(true);
+	    expect(or(true)(true)).toBe(true);
+	});
+    });
+
+    describe("not", function() {
+	it(isGlobalizable, function() {
+	    expect(typeof not).toEqual('function');
+	});
+
+	it("negates its argument", function() {
+	    expect(not(false)).toBe(true);
+	    expect(not(true)).toBe(false);
+	});
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+// Comparison
+////////////////////////////////////////////////////////////////////////////////
 
     describe("equal", function() {
 	it(isGlobalizable, function() {
@@ -496,6 +658,10 @@ describe("fun.js", function() {
 	});
     });
 
+////////////////////////////////////////////////////////////////////////////////
+// Number
+////////////////////////////////////////////////////////////////////////////////
+
     describe("incr", function() {
 	it(isGlobalizable, function() {
 	    expect(typeof incr).toEqual('function');
@@ -524,33 +690,86 @@ describe("fun.js", function() {
 	});
     });
 
-    describe("zip", function() {
-	var nums1 = [1,1,2,3,5,8,13];
-	var nums2 = [0,1,2,3,4];
-	var zipSum = [1,2,4,6,9];
-	var sumTwo; // add up two lists
-	var result;
-	
-	beforeEach(function() {
-	    sumTwo = zip(add);
-	    result = sumTwo(nums1, nums2);
-	});
-
+    describe("min", function() {
 	it(isGlobalizable, function() {
-	    expect(typeof zip).toEqual('function');
+	    expect(typeof min).toEqual('function');
 	});
 
-	it(isCurriable, function() {
-	    expect(typeof sumTwo).toEqual('function');
-	});
-
-	it("returns a list whose length is equal to the shorter of the two input lists", function() {
-	    expect(sumTwo(nums1, nums2).length).toEqual(nums2.length);
-	});
-
-	it("applies the given function to pairs of elements of the input lists", function() {
-	    expect(sumTwo(nums1, nums2)).toEqual(zipSum);
+	it("functions exactly like the builtin Math.min", function() {
+	    expect(min(4, 0, 8)).toEqual(Math.min(4, 0, 8));
 	});
     });
+
+    describe("max", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof max).toEqual('function');
+    	});
+
+    	it("functions exactly like the builtin Math.max", function() {
+    	    expect(max(1, 4, 9)).toEqual(Math.max(1, 4, 9));
+    	});
+    });
+
+    describe("pow", function() {
+    	var pow2 = pow(2);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof pow).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof pow2).toEqual('function');
+    	});
+
+    	it("functions exactly like the builtin Math.pow", function() {
+    	    expect(pow2(4)).toEqual(Math.pow(4, 2));
+    	});
+    });
+
+////////////////////////////////////////////////////////////////////////////////
+// String
+////////////////////////////////////////////////////////////////////////////////
+
+    describe("strcat", function() {
+	var base = "cat";
+	var catcat = strcat(base);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof strcat).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof catcat).toEqual('function');
+    	});
+
+	it("functions exactly like String.concat with 1 arg", function() {
+	    var pre = "Thunder";
+	    var emptyString = "";
+	    expect(catcat(emptyString)).toEqual(base);
+	    expect(catcat(pre)).toEqual(pre.concat(base)); // Thundercat
+	});
+    });
+
+    // not yet implemented in node v0.10.0 [bps]
+    // describe("contains", function() {
+    // 	var substring = "cat";
+    // 	var hascat = contains(substring);
+
+    // 	it(isGlobalizable, function() {
+    // 	    expect(typeof contains).toEqual('function');
+    // 	});
+
+    // 	it(isCurriable, function() {
+    // 	    expect(typeof hascat).toEqual('function');
+    // 	});
+
+    // 	it("functions exactly like String.contains", function() {
+    // 	    var does = "catamorphism";
+    // 	    var doesnt = "anamorphism";
+
+    // 	    expect(hascat(does)).toEqual(does.contains(substring));
+    // 	    expect(hascat(doesnt)).toEqual(doesnt.contains(substring));
+    // 	});
+    // });
 });
 
