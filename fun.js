@@ -196,6 +196,16 @@ fun.slice = function(lb, ub, xs) {
     return xs.slice(lb, ub);
 }.autoCurry();
 
+//+ indexOf :: [a] -> a -> Int
+fun.indexOf = function(x, xs) {
+    return xs.indexOf(x);
+}.autoCurry();
+
+//+ lastIndexOf :: [a] -> a -> Int
+fun.lastIndexOf = function(x, xs) {
+    return xs.lastIndexOf(x);
+}.autoCurry();
+
 ////////////////////////////////////////////////////////////////////////////////
 // Object
 ////////////////////////////////////////////////////////////////////////////////
@@ -323,6 +333,61 @@ fun.strcat = function(s, t) {
 //     return t.contains(s);
 // }.autoCurry();
 
+//+ endsWith :: String -> String -> Boolean
+// fun.endsWith = function(search, source) {
+//     return source.endsWith(search);
+// }.autoCurry();
+
+//+ match :: RegExp -> String -> Boolean
+fun.match = function(regex, string) {
+    return string.match(regex);
+}.autoCurry();
+
+//+ replace :: RegExp|String -> String|Function -> String -> String
+fun.replace = function(pat, subs, string) {
+    return string.replace(pat, subs);
+}.autoCurry();
+
+//+ search :: RegExp -> String -> Int
+fun.search = function(pat, string) {
+    return string.search(pat);
+}.autoCurry();
+
+//+ split :: String -> String -> [String]
+fun.split = function(pat, string) {
+    return string.split(pat);
+}.autoCurry();
+
+//+ substr :: String -> String -> [String]
+fun.substr = function(start, length, string) {
+    return string.substr(start, length);
+}.autoCurry();
+
+//+ toLower :: String -> String
+fun.toLower = function(string) {
+    return string.toLowerCase();
+};
+
+//+ toUpper :: String -> String
+fun.toUpper = function(string) {
+    return string.toUpperCase();
+};
+
+//+ trim :: String -> String
+fun.trim = function(string) {
+    return string.trim();
+};
+
+//+ trimRight :: String -> String
+fun.trimRight = function(string) {
+    return string.trimRight();
+};
+
+//+ trimLeft :: String -> String
+fun.trimLeft = function(string) {
+    return string.trimLeft();
+};
+
 ////////////////////////////////////////////////////////////////////////////////
 // RegExp
 ////////////////////////////////////////////////////////////////////////////////
@@ -360,6 +425,8 @@ fun.globalize = function(globalObj) {
 	, "find"
 	, "any"
 	, "all"
+	, "indexOf"
+	, "lastIndexOf"
 	, "equal"
 	, "identical"
 	, "gt"
@@ -373,6 +440,17 @@ fun.globalize = function(globalObj) {
 	, "pow"
 	, "strcat"
 	// , "contains"
+	// , "endsWith"
+	, "match"
+	, "replace"
+	, "search"
+	, "split"
+	, "substr"
+	, "toLower"
+	, "toUpper"
+	, "trim"
+	, "trimRight"
+	, "trimLeft"
     ].map(function(prop) {
 	globalObj[prop] = fun[prop];
     });

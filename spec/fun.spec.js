@@ -444,6 +444,40 @@ describe("fun.js", function() {
 	});
     });
 
+    describe("indexOf", function() {
+	var cities = ["Austin", "Dallas", "Houston", "Lubbock", "Waco", "Houston"];
+	var indexOfHouston = indexOf("Houston");
+
+	it(isGlobalizable, function() {
+	    expect(typeof indexOf).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(typeof indexOfHouston).toEqual('function');
+	});
+	
+	it("functions exactly like the builtin Array.indexOf", function() {
+	    expect(indexOfHouston(cities)).toEqual(cities.indexOf("Houston"));
+	});
+    });
+
+    describe("lastIndexOf", function() {
+	var cities = ["Austin", "Dallas", "Houston", "Lubbock", "Waco", "Houston"];
+	var lastIndexOfHouston = lastIndexOf("Houston");
+
+	it(isGlobalizable, function() {
+	    expect(typeof lastIndexOf).toEqual('function');
+	});
+
+	it(isCurriable, function() {
+	    expect(typeof lastIndexOfHouston).toEqual('function');
+	});
+	
+	it("functions exactly like the builtin Array.lastIndexOf", function() {
+	    expect(lastIndexOfHouston(cities)).toEqual(cities.lastIndexOf("Houston"));
+	});
+    });
+
 ////////////////////////////////////////////////////////////////////////////////
 // Function
 ////////////////////////////////////////////////////////////////////////////////
@@ -771,5 +805,229 @@ describe("fun.js", function() {
     // 	    expect(hascat(doesnt)).toEqual(doesnt.contains(substring));
     // 	});
     // });
+
+    // describe("endsWith", function() {
+    // 	var ending = "cat";
+    // 	var endsWithCat = endsWith(ending);
+
+    // 	it(isGlobalizable, function() {
+    // 	    expect(typeof endsWith).toEqual('function');
+    // 	});
+
+    // 	it(isCurriable, function() {
+    // 	    expect(typeof endsWithCat).toEqual('function');
+    // 	});
+
+    // 	it("functions exactly like String.endsWith", function() {
+    // 	    var does = "Thundercat";
+    // 	    var doesnt = "Lion-O";
+
+    // 	    expect(endsWithCat(does)).toEqual(does.endsWith(ending));
+    // 	    expect(endsWithCat(doesnt)).toEqual(doesnt.endsWith(ending));
+    // 	});
+    // });
+
+    describe("indexOf (for String)", function() {
+	var searchString = "blabber";
+	var indexOfb = indexOf("b");
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof indexOf).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof indexOfb).toEqual('function');
+    	});
+
+	it("functions exactly like String.indexOf", function() {
+	    expect(indexOfb(searchString)).toEqual(searchString.indexOf("b"));
+	});
+    });
+
+    describe("lastIndexOf (for String)", function() {
+	var searchString = "blabber";
+	var lastIndexOfb = lastIndexOf("b");
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof lastIndexOf).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof lastIndexOfb).toEqual('function');
+    	});
+
+	it("functions exactly like String.lastIndexOf", function() {
+	    expect(lastIndexOfb(searchString)).toEqual(searchString.lastIndexOf("b"));
+	});
+    });
+
+    describe("match", function() {
+	var searchString = "blabbermouth";
+	var regex = /[aeiou]b{2}/;
+	var matchesRegex = match(regex);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof match).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof matchesRegex).toEqual('function');
+    	});
+
+	it("functions exactly like String.match", function() {
+	    expect(matchesRegex(searchString)).toEqual(searchString.match(regex));
+	});
+    });
+
+    describe("replace", function() {
+	var searchString = "blabbermouth";
+	var pat = /[aeiou]b{2}/;
+	var replacement = "ubb";
+	var replaceIt = replace(pat, replacement);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof replace).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof replaceIt).toEqual('function');
+    	});
+
+	it("functions exactly like String.replace", function() {
+	    expect(replaceIt(searchString)).toEqual(searchString.replace(pat, replacement));
+	});
+    });
+
+    describe("search", function() {
+	var string = "blabbermouth";
+	var pattern = /[aeiou]b{2}/;
+	var searchPattern = search(pattern);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof search).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof searchPattern).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.search", function() {
+	    expect(searchPattern(string)).toEqual(string.search(pattern));
+	});
+    });
+
+    describe("slice (for String)", function() {
+	var string = "blabbermouth";
+	var lower = 2, upper = 5, substring = "abb";
+	var sliceMiddle = slice(lower, upper);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof slice).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof sliceMiddle).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.slice", function() {
+	    expect(sliceMiddle(string)).toEqual(string.slice(lower, upper));
+	});
+    });
+
+    describe("split", function() {
+	var string = "blabbermouth";
+	var splitBs = split("b");
+	var result = ['', 'la', '', 'ermouth'];
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof split).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof splitBs).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.split", function() {
+	    expect(splitBs(string)).toEqual(string.split("b"));
+	});
+    });
+
+    describe("substr", function() {
+	var string = "blabbermouth";
+	var start = 2, len = 3, result = "abb";
+	var getMiddle = substr(start, len);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof substr).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof getMiddle).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.substr", function() {
+	    expect(getMiddle(string)).toEqual(string.substr(start, len));
+	});
+    });
+
+    describe("toLower", function() {
+	var string = "HELLOworld";
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof toLower).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.toLowerCase", function() {
+	    expect(toLower(string)).toEqual(string.toLowerCase());
+	});
+    });
+
+    describe("toUpper", function() {
+	var string = "HELLOworld";
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof toUpper).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.toUpperCase", function() {
+	    expect(toUpper(string)).toEqual(string.toUpperCase());
+	});
+    });
+
+    describe("trim", function() {
+	var string = "  HELLOworld  \t\n";
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof trim).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.trim", function() {
+	    expect(trim(string)).toEqual(string.trim());
+	});
+    });
+
+    describe("trimRight", function() {
+	var string = "  HELLOworld  \t\n";
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof trimRight).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.trimRight", function() {
+	    expect(trimRight(string)).toEqual(string.trimRight());
+	});
+    });
+
+    describe("trimLeft", function() {
+	var string = "  HELLOworld  \t\n";
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof trimLeft).toEqual('function');
+    	});
+
+	it("functions exactly like the builtin String.trimLeft", function() {
+	    expect(trimLeft(string)).toEqual(string.trimLeft());
+	});
+    });
 });
 
