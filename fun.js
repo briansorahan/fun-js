@@ -417,10 +417,12 @@ fun.trimLeft = function(string) {
 // Make functions globally available as properties of an object
 //+ import :: Object -> _
 fun.import = function(options) {
-	var namespace = fun.has("as", options) ? options.as : window ? window : undefined;
+	var namespace = fun.has("as", options) ? options.as : undefined;
 	var hiding = fun.has("hiding", options) ? options.hiding : [];
 	fun.objMap(function(k, v) {
-		namespace[k] = fun.contains(k, hiding) ? undefined : v;
+		if (namespace) {
+			namespace[k] = fun.contains(k, hiding) ? undefined : v;
+		}
 	}, fun);
 };
 
