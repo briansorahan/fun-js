@@ -412,22 +412,16 @@ fun.trimLeft = function(string) {
     return string.trimLeft();
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// RegExp
-////////////////////////////////////////////////////////////////////////////////
-
 
 
 // Make functions globally available as properties of an object
+//+ import :: Object -> _
 fun.import = function(options) {
 	var namespace = fun.has("as", options) ? options.as : window ? window : undefined;
 	var hiding = fun.has("hiding", options) ? options.hiding : [];
-
-	for(var prop in fun) {
-		if (fun.hasOwnProperty(prop) && (! fun.contains(prop, hiding))) {
-			namespace[prop] = fun[prop];
-		}
-	}
+	fun.objMap(function(k, v) {
+		namespace[k] = fun.contains(k, hiding) ? undefined : v;
+	}, fun);
 };
 
 module.exports = fun;
