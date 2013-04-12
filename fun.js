@@ -206,6 +206,15 @@ fun.lastIndexOf = function(x, xs) {
     return xs.lastIndexOf(x);
 }.autoCurry();
 
+//+ contains :: a -> [a] -> Boolean
+fun.contains = function(x, xs) {
+	if (fun.isArray(xs)) {
+		return xs.indexOf(x) >= 0;
+	} else {
+		// String contains
+	}
+}.autoCurry();
+
 ////////////////////////////////////////////////////////////////////////////////
 // Object
 ////////////////////////////////////////////////////////////////////////////////
@@ -224,6 +233,21 @@ fun.has = function(name, obj) {
 fun.instanceOf = function(constructor, obj) {
     return obj instanceof constructor;
 }.autoCurry();
+
+//+ objMap :: (String -> a -> b) -> Object -> [b]
+// map over key/value pairs in an object
+fun.objMap = function(f, obj) {
+	var result = [], index = 0;
+	for (var property in obj) {
+		if (obj.hasOwnProperty(property)) {
+			result[index++] = f(property, obj[property]);
+		}
+	}
+	return result;
+}.autoCurry();
+
+//+ keys :: Object -> [String]
+fun.keys = fun.objMap(function(k,v) { return k; });
 
 ////////////////////////////////////////////////////////////////////////////////
 // Logic
@@ -328,7 +352,7 @@ fun.strcat = function(s, t) {
     return t.concat(s);
 }.autoCurry();
 
-// not yet implemented in node v0.10.0
+//+ contains :: String -> String -> Boolean
 // fun.contains = function(s, t) {
 //     return t.contains(s);
 // }.autoCurry();
@@ -395,65 +419,15 @@ fun.trimLeft = function(string) {
 
 
 // Make functions globally available as properties of an object
-// (e.g. -- window, global)
-fun.globalize = function(globalObj) {
-    [
-	"id"
-	, "isNull"
-	, "isDefined"
-	, "isNumber"
-	, "isArray"
-	, "isObject"
-	, "map"
-	, "filter"
-	, "reduce"
-	, "reduceRight"
-	, "zip"
-	, "join"
-	, "slice"
-	, "compose"
-	, "pluck"
-	, "has"
-	, "instanceOf"
-	, "flip"
-	, "and"
-	, "or"
-	, "not"
-	, "empty"
-	, "head"
-	, "tail"
-	, "find"
-	, "any"
-	, "all"
-	, "indexOf"
-	, "lastIndexOf"
-	, "equal"
-	, "identical"
-	, "gt"
-	, "gte"
-	, "lt"
-	, "lte"
-	, "incr"
-	, "decr"
-	, "min"
-	, "max"
-	, "pow"
-	, "strcat"
-	// , "contains"
-	// , "endsWith"
-	, "match"
-	, "replace"
-	, "search"
-	, "split"
-	, "substr"
-	, "toLower"
-	, "toUpper"
-	, "trim"
-	, "trimRight"
-	, "trimLeft"
-    ].map(function(prop) {
-	globalObj[prop] = fun[prop];
-    });
+fun.import = function(options) {
+	var namespace = fun.has("as", options) ? options.as : window ? window : undefined;
+	var hiding = fun.has("hiding", options) ? options.hiding : [];
+
+	for(var prop in fun) {
+		if (fun.hasOwnProperty(prop) && (! fun.contains(prop, hiding))) {
+			namespace[prop] = fun[prop];
+		}
+	}
 };
 
 module.exports = fun;
