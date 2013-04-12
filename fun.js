@@ -246,8 +246,22 @@ fun.objMap = function(f, obj) {
 	return result;
 }.autoCurry();
 
-//+ keys :: Object -> [String]
-fun.keys = fun.objMap(function(k,v) { return k; });
+//+ merge :: Object -> Object -> Object
+// 
+// Note: Properties of the second argument take precedence
+//       over identically-named properties of the first
+//       argument.
+fun.merge = function(obj1, obj2) {
+	var result = {};
+    [obj1, obj2].forEach(function(obj) {
+        for (var p in obj) {
+            if (fun.has(p, obj)) {
+                result[p] = obj[p];
+            }
+        }
+    });
+    return result;
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Logic
