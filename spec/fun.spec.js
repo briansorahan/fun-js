@@ -583,7 +583,7 @@ describe("fun.js", function() {
 		});
     });
 
-    describe("diff", function() {
+    describe("diff(a, b)", function() {
         var a = ["a", "b", "c"];
         var diffA = diff(a);
 
