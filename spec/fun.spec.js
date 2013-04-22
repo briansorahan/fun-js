@@ -1,10 +1,27 @@
 var fun = require('../fun');
-fun.import({ as: global });
+fun.import({ under: global });
 
 describe("fun.js", function() {
     var isGlobalizable = "is provided by globalize";
     var isCurriable = "can be curried";
     
+	var texasCities = [
+        "Abilene",
+        "Amarillo",
+        "Austin",
+        "Beaumont",
+        "Dallas",
+        "Galveston",
+        "Houston",
+        "Longview",
+        "Lubbock",
+        "Midland",
+        "Nacogdoches",
+        "Odessa",
+        "San Antonio",
+        "Waco"
+    ];
+
     var users = [
 		{
 			name: "brian",
@@ -475,6 +492,51 @@ describe("fun.js", function() {
 		
 		it("functions exactly like the builtin Array.lastIndexOf", function() {
 			expect(lastIndexOfHouston(cities)).toEqual(cities.lastIndexOf("Houston"));
+		});
+    });
+
+    describe("contains", function() {
+		var containsAustin = contains("Austin");
+
+		it(isGlobalizable, function() {
+			expect(typeof contains).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof containsAustin).toEqual('function');
+		});
+		
+		it("Determines whether an array contains a value", function() {
+			expect(containsAustin(texasCities)).toBe(true);
+            expect(containsAustin([])).toBe(false);
+		});
+
+		it("Returns false for the empty list", function() {
+            expect(containsAustin([])).toBe(false);
+		});
+
+        it("Does not perform type coercion", function() {
+            expect(contains(1, ["1", "2", "3"])).toBe(false);
+            expect(contains(1, [1,2,3])).toBe(true);
+        });
+    });
+
+    describe("elem", function() {
+		var inTx = elem(texasCities);
+
+		it(isGlobalizable, function() {
+			expect(typeof elem).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof inTx).toEqual('function');
+		});
+		
+		it("is `contains` with the arguments reversed", function() {
+			expect(inTx("Lubbock")).toBe(true);
+			expect(inTx("Durham")).toBe(false);
+            expect(elem([1,2,3], 1)).toBe(true);
+            expect(elem(["1", "2", "3"], 1)).toBe(false);
 		});
     });
 
