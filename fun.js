@@ -167,6 +167,7 @@ fun.all = function (f, xs) {
     return xs.every(f);
 }.autoCurry();
 
+//+ find :: (a -> Boolean) -> [a] -> a
 fun.find = function(f, xs) {
     var len = xs.length;
     for (var i = 0; i < len; i++) {
@@ -207,12 +208,16 @@ fun.lastIndexOf = function(x, xs) {
 }.autoCurry();
 
 //+ contains :: a -> [a] -> Boolean
+// Works for Strings and Arrays!
 fun.contains = function(x, xs) {
-	if (fun.isArray(xs)) {
-		return xs.indexOf(x) >= 0;
-	} else {
-		// String contains
-	}
+	return xs.indexOf(x) >= 0;
+}.autoCurry();
+
+//+ elem :: [a] -> a -> Boolean
+// contains with the arguments reversed
+// works better for currying
+fun.elem = function(xs, x) {
+    return xs.indexOf(x) >= 0;
 }.autoCurry();
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -289,9 +294,13 @@ fun.equal = function (x, y) {
 }.autoCurry();
 
 //+ identical :: a -> a -> Boolean
-// Note: no type coercion
 fun.identical = function (x, y) {
     return x === y;
+}.autoCurry();
+
+//+ looseIdentical :: a -> a -> Boolean
+fun.looseIdentical = function (x, y) {
+    return x == y;
 }.autoCurry();
 
 //+ gt :: a -> a -> Boolean
