@@ -583,6 +583,36 @@ describe("fun.js", function() {
 		});
     });
 
+    describe("diff", function() {
+        var a = ["a", "b", "c"];
+        var diffA = diff(a);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof diff).toEqual('function');
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(typeof diffA).toEqual('function');
+    	});
+
+		it("returns an object with `added` and `removed` properties", function() {
+            expect(diffA([]).added).toBeDefined();
+            expect(diffA([]).removed).toBeDefined();
+		});
+
+        it("tells you which values are in b but not in a (`added`)", function() {
+            expect(diffA(["d"]).added).toEqual(["d"]);
+        });
+
+        it("tells you which values are in a but not in b (`removed`)", function() {
+            expect(diffA(["d"]).removed).toEqual(["a", "b", "c"]);
+        });
+
+        it("returns undefined if either of the first two args are not Arrays", function() {
+            expect(diff(1, ["d"])).not.toBeDefined();
+        });
+    });
+
 	////////////////////////////////////////
 	// Object
 	////////////////////////////////////////

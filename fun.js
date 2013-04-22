@@ -116,6 +116,104 @@ fun.flip = function(f) {
 };
 
 ////////////////////////////////////////
+// Logic
+////////////////////////////////////////
+
+//+ and :: _ ... -> Boolean
+fun.and = function () {
+    var args = slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc && v;
+	}, true, args.concat(slice.call(arguments)));
+    };
+}.autoCurry();
+
+//+ or :: _ ... -> Boolean
+fun.or = function () {
+    var args = slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc || v;
+	}, false, args.concat(slice.call(arguments)));
+    };
+}.autoCurry();
+
+//+ not :: _ -> Boolean
+fun.not = function(x) {
+    return !x;
+};
+
+////////////////////////////////////////
+// Comparison
+////////////////////////////////////////
+
+//+ equal :: a -> a -> Boolean
+// Note: type coercion
+fun.equal = function (x, y) {
+    return x == y;
+}.autoCurry();
+
+//+ identical :: a -> a -> Boolean
+fun.identical = function (x, y) {
+    return x === y;
+}.autoCurry();
+
+//+ looseIdentical :: a -> a -> Boolean
+fun.looseIdentical = function (x, y) {
+    return x == y;
+}.autoCurry();
+
+//+ gt :: a -> a -> Boolean
+fun.gt = function(x, y) {
+    return x < y;
+}.autoCurry();
+
+//+ gte :: a -> a -> Boolean
+fun.gte = function(x, y) {
+    return x <= y;
+}.autoCurry();
+
+//+ lt :: a -> a -> Boolean
+fun.lt = function(x, y) {
+    return x > y;
+}.autoCurry();
+
+//+ lte :: a -> a -> Boolean
+fun.lte = function(x, y) {
+    return x >= y;
+}.autoCurry();
+
+////////////////////////////////////////
+// Number
+////////////////////////////////////////
+
+//+ incr :: Int -> Int
+fun.incr = function(x) {
+    return typeof x === 'number' ? x + 1 : undefined;
+};
+
+//+ decr :: Int -> Int
+fun.decr = function(x) {
+    return typeof x === 'number' ? x - 1 : undefined;
+};
+
+//+ min :: Number ... -> Number
+fun.min = function() {
+    return Math.min.apply(null, arguments);
+};
+
+//+ max :: Number ... -> Number
+fun.max = function() {
+    return Math.max.apply(null, arguments);
+};
+
+//+ pow :: Number ... -> Number
+fun.pow = function(exponent, base) {
+    return Math.pow(base, exponent);
+}.autoCurry();
+
+////////////////////////////////////////
 // Array
 ////////////////////////////////////////
 
@@ -254,10 +352,10 @@ fun.objMap = function(f, obj) {
 }.autoCurry();
 
 //+ merge :: Object -> Object -> Object
-// 
 // Note: Properties of the second argument take precedence
 //       over identically-named properties of the first
 //       argument.
+// TODO unit tests
 fun.merge = function(obj1, obj2) {
 	var result = {};
     [obj1, obj2].forEach(function(obj) {
@@ -270,102 +368,22 @@ fun.merge = function(obj1, obj2) {
     return result;
 };
 
-////////////////////////////////////////
-// Logic
-////////////////////////////////////////
-
-//+ and :: _ ... -> Boolean
-fun.and = function () {
-    var args = slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
-	    return acc && v;
-	}, true, args.concat(slice.call(arguments)));
-    };
-}.autoCurry();
-
-//+ or :: _ ... -> Boolean
-fun.or = function () {
-    var args = slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
-	    return acc || v;
-	}, false, args.concat(slice.call(arguments)));
-    };
-}.autoCurry();
-
-//+ not :: _ -> Boolean
-fun.not = function(x) {
-    return !x;
-};
-
-////////////////////////////////////////
-// Comparison
-////////////////////////////////////////
-
-//+ equal :: a -> a -> Boolean
-// Note: type coercion
-fun.equal = function (x, y) {
-    return x == y;
-}.autoCurry();
-
-//+ identical :: a -> a -> Boolean
-fun.identical = function (x, y) {
-    return x === y;
-}.autoCurry();
-
-//+ looseIdentical :: a -> a -> Boolean
-fun.looseIdentical = function (x, y) {
-    return x == y;
-}.autoCurry();
-
-//+ gt :: a -> a -> Boolean
-fun.gt = function(x, y) {
-    return x < y;
-}.autoCurry();
-
-//+ gte :: a -> a -> Boolean
-fun.gte = function(x, y) {
-    return x <= y;
-}.autoCurry();
-
-//+ lt :: a -> a -> Boolean
-fun.lt = function(x, y) {
-    return x > y;
-}.autoCurry();
-
-//+ lte :: a -> a -> Boolean
-fun.lte = function(x, y) {
-    return x >= y;
-}.autoCurry();
-
-////////////////////////////////////////
-// Number
-////////////////////////////////////////
-
-//+ incr :: Int -> Int
-fun.incr = function(x) {
-    return typeof x === 'number' ? x + 1 : undefined;
-};
-
-//+ decr :: Int -> Int
-fun.decr = function(x) {
-    return typeof x === 'number' ? x - 1 : undefined;
-};
-
-//+ min :: Number ... -> Number
-fun.min = function() {
-    return Math.min.apply(null, arguments);
-};
-
-//+ max :: Number ... -> Number
-fun.max = function() {
-    return Math.max.apply(null, arguments);
-};
-
-//+ pow :: Number ... -> Number
-fun.pow = function(exponent, base) {
-    return Math.pow(base, exponent);
+fun.diff = function(a, b) {
+    var added = [], removed = [];
+    if (! (fun.isArray(a) && fun.isArray(b))) {
+        return undefined;
+    }
+    if (fun.isArray(a)) {
+        if (fun.isArray(b)) {
+            added = fun.filter(fun.compose(fun.not, fun.elem(a)))(b);
+            removed = fun.filter(fun.compose(fun.not, fun.elem(b)))(a);
+        } else {
+            removed = a;
+        }
+    } else if (fun.isArray(b)) {
+        added = b;
+    }
+    return { added: added, removed: removed };
 }.autoCurry();
 
 ////////////////////////////////////////
