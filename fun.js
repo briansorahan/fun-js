@@ -3,13 +3,15 @@
  * ====================
  * 
  * A mish-mash of useful functions to enable haskell-style
- * coding in js. Mostly taken from wu.js, loop-recur, and
- * underscore.js.
+ * coding in js. Mostly taken from
+ * - wu.js
+ * - underscore.js.
+ * - loop-recur
  * 
  * Usage
  * --------------------
- * - node.js
- * - browser
+ * - node.js TODO
+ * - browser TODO
  */
 
 var fun = {};
