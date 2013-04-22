@@ -212,6 +212,49 @@ describe("fun.js", function() {
     });
 
 	////////////////////////////////////////
+	// Function
+	////////////////////////////////////////
+
+    describe("autoCurry", function() {
+		it("can be called on any Function object", function() {
+			expect(typeof Function.prototype.autoCurry).toEqual('function');
+		});
+
+		it("can be partially applied with one argument", function() {
+			var add1 = add(1);
+			expect(add1(1)).toEqual(2);
+		});
+
+		it("can be partially applied with more than one argument", function() {
+			var add4 = add3(2, 2);
+			expect(add4(1)).toEqual(5);
+		});
+    });
+
+    describe("compose", function() {
+    	it(isGlobalizable, function() {
+			expect(typeof compose).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			var add2 = compose(subtract(2), add(4));
+			expect(add2(4)).toEqual(6);
+		});
+    });
+
+    describe("flip", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof flip).toEqual('function');
+    	});
+
+    	it("flips the first two arguments of a function", function() {
+    	    var mySubtract = flip(subtract);
+			var first = 10, second = 4;
+    	    expect(mySubtract(first, second)).toEqual(6);
+    	});
+    });
+
+	////////////////////////////////////////
 	// Array
 	////////////////////////////////////////
 
@@ -538,49 +581,6 @@ describe("fun.js", function() {
             expect(elem([1,2,3], 1)).toBe(true);
             expect(elem(["1", "2", "3"], 1)).toBe(false);
 		});
-    });
-
-	////////////////////////////////////////
-	// Function
-	////////////////////////////////////////
-
-    describe("autoCurry", function() {
-		it("can be called on any Function object", function() {
-			expect(typeof Function.prototype.autoCurry).toEqual('function');
-		});
-
-		it("can be partially applied with one argument", function() {
-			var add1 = add(1);
-			expect(add1(1)).toEqual(2);
-		});
-
-		it("can be partially applied with more than one argument", function() {
-			var add4 = add3(2, 2);
-			expect(add4(1)).toEqual(5);
-		});
-    });
-
-    describe("compose", function() {
-    	it(isGlobalizable, function() {
-			expect(typeof compose).toEqual('function');
-		});
-
-		it(isCurriable, function() {
-			var add2 = compose(subtract(2), add(4));
-			expect(add2(4)).toEqual(6);
-		});
-    });
-
-    describe("flip", function() {
-    	it(isGlobalizable, function() {
-    	    expect(typeof flip).toEqual('function');
-    	});
-
-    	it("flips the first two arguments of a function", function() {
-    	    var mySubtract = flip(subtract);
-			var first = 10, second = 4;
-    	    expect(mySubtract(first, second)).toEqual(6);
-    	});
     });
 
 	////////////////////////////////////////
