@@ -320,6 +320,25 @@ fun.elem = function(xs, x) {
     return xs.indexOf(x) >= 0;
 }.autoCurry();
 
+//+ diff :: [a] -> [a] -> Object
+fun.diff = function(a, b) {
+    var added = [], removed = [];
+    if (! (fun.isArray(a) && fun.isArray(b))) {
+        return undefined;
+    }
+    if (fun.isArray(a)) {
+        if (fun.isArray(b)) {
+            added = fun.filter(fun.compose(fun.not, fun.elem(a)))(b);
+            removed = fun.filter(fun.compose(fun.not, fun.elem(b)))(a);
+        } else {
+            removed = a;
+        }
+    } else if (fun.isArray(b)) {
+        added = b;
+    }
+    return { added: added, removed: removed };
+}.autoCurry();
+
 ////////////////////////////////////////
 // Object
 ////////////////////////////////////////
@@ -367,24 +386,6 @@ fun.merge = function(obj1, obj2) {
     });
     return result;
 };
-
-fun.diff = function(a, b) {
-    var added = [], removed = [];
-    if (! (fun.isArray(a) && fun.isArray(b))) {
-        return undefined;
-    }
-    if (fun.isArray(a)) {
-        if (fun.isArray(b)) {
-            added = fun.filter(fun.compose(fun.not, fun.elem(a)))(b);
-            removed = fun.filter(fun.compose(fun.not, fun.elem(b)))(a);
-        } else {
-            removed = a;
-        }
-    } else if (fun.isArray(b)) {
-        added = b;
-    }
-    return { added: added, removed: removed };
-}.autoCurry();
 
 ////////////////////////////////////////
 // String
