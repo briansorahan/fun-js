@@ -367,7 +367,7 @@ fun.objMap = function(f, obj) {
 // Note: Properties of the second argument take precedence
 //       over identically-named properties of the first
 //       argument.
-// TODO unit tests
+// TODO unit tests boyyyyeeeeee!
 fun.merge = function(obj1, obj2) {
 	var result = {};
     [obj1, obj2].forEach(function(obj) {
