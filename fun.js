@@ -322,21 +322,14 @@ fun.elem = function(xs, x) {
 
 //+ diff :: [a] -> [a] -> Object
 fun.diff = function(a, b) {
-    var added = [], removed = [];
     if (! (fun.isArray(a) && fun.isArray(b))) {
         return undefined;
+    } else {
+        return {
+            added: fun.filter(fun.compose(fun.not, fun.elem(a)))(b),
+            removed: fun.filter(fun.compose(fun.not, fun.elem(b)))(a)
+        };
     }
-    if (fun.isArray(a)) {
-        if (fun.isArray(b)) {
-            added = fun.filter(fun.compose(fun.not, fun.elem(a)))(b);
-            removed = fun.filter(fun.compose(fun.not, fun.elem(b)))(a);
-        } else {
-            removed = a;
-        }
-    } else if (fun.isArray(b)) {
-        added = b;
-    }
-    return { added: added, removed: removed };
 }.autoCurry();
 
 ////////////////////////////////////////
