@@ -1,5 +1,4 @@
-var fun = require('../fun');
-fun.import({ under: global });
+require('../fun').import({ under: global });
 
 describe("fun.js", function() {
     var isGlobalizable = "can be imported into the global namespace";
