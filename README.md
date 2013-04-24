@@ -11,3 +11,10 @@ install
 ```
 npm install fun-js
 ```
+
+usage
+
+```node
+require("fun");
+fun.import({ under: global });
+```
