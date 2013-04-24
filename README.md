@@ -1,18 +1,16 @@
-fun-js
-======
+# fun-js
 
 [![Build Status](https://travis-ci.org/briansorahan/fun-js.png)](https://travis-ci.org/briansorahan/fun-js)
 
 Functional Programming for Javascript
 
-install
--------
+### install
 
 ```
-npm install fun-js
+$ npm install fun-js
 ```
 
-usage
+### usage
 
 ```javascript
 require("fun").import({ under: global });
