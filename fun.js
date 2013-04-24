@@ -1,23 +1,17 @@
 /**
- * fun.js
- * ====================
- * 
- * A mish-mash of useful functions to enable haskell-style
- * coding in js. Mostly taken from
- * - wu.js
- * - underscore.js.
- * - loop-recur
- * 
- * Usage
- * --------------------
- * - node.js TODO
- * - browser TODO
+ * @author Brian Sorahan
+ * @license MIT
+ * @title fun-js
+ * @overview Haskell-esque programming in javascript
  */
 
 var fun = {};
 var slice = Array.prototype.slice;
 
-//+ id :: _ -> _
+/**
+ * id :: _ -> _
+ * @function
+ */
 fun.id = function(x) {
     return x;
 };
@@ -26,12 +20,18 @@ fun.id = function(x) {
 // type checking
 ////////////////////////////////////////
 
-//+ isNull :: _ -> Boolean
+/**
+ * isNull :: _ -> Boolean
+ * @function
+ */
 fun.isNull = function(obj) {
     return obj === null;
 };
 
-//+ isDefined :: _ -> Boolean
+/**
+ * isDefined :: _ -> Boolean
+ * @function
+ */
 fun.isDefined = function(obj) {
     return typeof obj !== 'undefined';
 };
