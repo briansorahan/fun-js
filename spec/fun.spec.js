@@ -2,7 +2,7 @@ var fun = require('../fun');
 fun.import({ under: global });
 
 describe("fun.js", function() {
-    var isGlobalizable = "is provided by globalize";
+    var isGlobalizable = "can be imported into the global namespace";
     var isCurriable = "can be curried";
     
 	var texasCities = [
