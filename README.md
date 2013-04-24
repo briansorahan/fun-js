@@ -21,3 +21,6 @@ $ jasmine-node .
 ```javascript
 require("fun").import({ under: global });
 ```
+
+### api
+[project page](http://briansorahan.github.io/fun-js)
