@@ -15,6 +15,5 @@ npm install fun-js
 usage
 
 ```javascript
-require("fun");
-fun.import({ under: global });
+require("fun").import({ under: global });
 ```
