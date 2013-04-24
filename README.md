@@ -10,6 +10,12 @@ Functional Programming for Javascript
 $ npm install fun-js
 ```
 
+### test
+
+```
+$ jasmine-node .
+```
+
 ### usage
 
 ```javascript
