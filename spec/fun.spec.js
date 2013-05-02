@@ -1043,6 +1043,23 @@ describe("fun.js", function() {
 		});
     });
 
+    describe("reverse", function() {
+		var arr = [1, 2, 3];
+        var reversed = reverse(arr);
+
+    	it(isGlobalizable, function() {
+    	    expect(typeof slice).toEqual('function');
+    	});
+        
+        it("is non-destructive", function() {
+            expect(arr).toEqual([1,2,3]);
+        });
+
+		it("functions like the builtin Array.reverse", function() {
+			expect(reversed).toEqual(arr.reverse());
+		});
+    });
+
     describe("split", function() {
 		var string = "blabbermouth";
 		var splitBs = split("b");

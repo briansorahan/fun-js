@@ -287,15 +287,20 @@ fun.zip = function(f, xs, ys) {
     return result;
 }.autoCurry();
 
-//+ join :: String -> Array -> String
+//+ join :: String -> [a] -> String
 fun.join = function(string, xs) {
     return xs.join(string);
 }.autoCurry();
 
-//+ slice :: Int -> Int -> Array -> Array
+//+ slice :: Int -> Int -> [a] -> [a]
 fun.slice = function(lb, ub, xs) {
     return xs.slice(lb, ub);
 }.autoCurry();
+
+//+ reverse :: [a] -> [a]
+fun.reverse = function(xs) {
+    return slice.call(xs, 0).reverse();
+};
 
 //+ indexOf :: [a] -> a -> Int
 fun.indexOf = function(x, xs) {
