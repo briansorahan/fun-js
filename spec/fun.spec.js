@@ -869,6 +869,16 @@ describe("fun.js", function() {
     	});
     });
 
+    describe("sum", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof pow).toEqual('function');
+    	});
+
+        it("sums an Array of numbers", function() {
+            expect(sum([1,2,3])).toEqual(6);
+        });
+    });
+
 	////////////////////////////////////////
 	// String
 	////////////////////////////////////////

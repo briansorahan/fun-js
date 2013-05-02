@@ -213,6 +213,13 @@ fun.pow = function(exponent, base) {
     return Math.pow(base, exponent);
 }.autoCurry();
 
+//+ sum :: [Number] -> Number
+fun.sum = function(ns) {
+    return ns.reduce(function(acc, n) {
+        return acc + n;
+    }, 0);
+};
+
 ////////////////////////////////////////
 // Array
 ////////////////////////////////////////
