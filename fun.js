@@ -220,6 +220,13 @@ fun.sum = function(ns) {
     }, 0);
 };
 
+//+ product :: [Number] -> Number
+fun.product = function(ns) {
+    return ns.reduce(function(acc, n) {
+        return acc * n;
+    }, 1);
+};
+
 ////////////////////////////////////////
 // Array
 ////////////////////////////////////////

@@ -871,11 +871,21 @@ describe("fun.js", function() {
 
     describe("sum", function() {
     	it(isGlobalizable, function() {
-    	    expect(typeof pow).toEqual('function');
+    	    expect(typeof sum).toEqual('function');
     	});
 
         it("sums an Array of numbers", function() {
             expect(sum([1,2,3])).toEqual(6);
+        });
+    });
+
+    describe("product", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof product).toEqual('function');
+    	});
+
+        it("sums an Array of numbers", function() {
+            expect(product([1,2,3])).toEqual(6);
         });
     });
 
