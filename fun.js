@@ -198,14 +198,14 @@ fun.decr = function(x) {
     return typeof x === 'number' ? x - 1 : undefined;
 };
 
-//+ min :: Number ... -> Number
-fun.min = function() {
-    return Math.min.apply(null, arguments);
+//+ min :: [Number] -> Number
+fun.min = function(ns) {
+    return fun.isArray(ns) ? Math.min.apply(null, ns) : undefined;
 };
 
-//+ max :: Number ... -> Number
-fun.max = function() {
-    return Math.max.apply(null, arguments);
+//+ max :: [Number] -> Number
+fun.max = function(ns) {
+    return fun.isArray(ns) ? Math.max.apply(null, ns) : undefined;
 };
 
 //+ pow :: Number ... -> Number
@@ -348,6 +348,19 @@ fun.diff = function(a, b) {
             added: fun.filter(fun.compose(fun.not, fun.elem(a)))(b),
             removed: fun.filter(fun.compose(fun.not, fun.elem(b)))(a)
         };
+    }
+}.autoCurry();
+
+//+ replicate :: Int -> a -> [a]
+fun.replicate = function(n, v) {
+    if (! fun.isNumber(n)) {
+        return undefined;
+    } else {
+        var arr = new Array(n);
+        for (var i = 0; i < n; i++) {
+            arr[i] = v;
+        }
+        return arr;
     }
 }.autoCurry();
 

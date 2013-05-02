@@ -612,6 +612,26 @@ describe("fun.js", function() {
         });
     });
 
+    describe("replicate", function() {
+		var fourTimes = replicate(4);
+
+		it(isGlobalizable, function() {
+			expect(typeof replicate).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof fourTimes).toEqual('function');
+		});
+		
+		it("creates an Array of length n with each value equal to the second arg", function() {
+            expect(fourTimes("r")).toEqual(["r", "r", "r", "r"]);
+		});
+
+        it("returns undefined if the first arg is not a number", function() {
+            expect(replicate("weird", "something")).not.toBeDefined();
+        });
+    });
+
 	////////////////////////////////////////
 	// Object
 	////////////////////////////////////////
@@ -839,8 +859,12 @@ describe("fun.js", function() {
 		});
 
 		it("functions exactly like the builtin Math.min", function() {
-			expect(min(4, 0, 8)).toEqual(Math.min(4, 0, 8));
+			expect(min([4, 0, 8])).toEqual(Math.min(4, 0, 8));
 		});
+
+        it("returns undefined if you call it with anything other than an array", function() {
+            expect(min("foo")).not.toBeDefined();
+        });
     });
 
     describe("max", function() {
@@ -849,8 +873,12 @@ describe("fun.js", function() {
     	});
 
     	it("functions exactly like the builtin Math.max", function() {
-    	    expect(max(1, 4, 9)).toEqual(Math.max(1, 4, 9));
+    	    expect(max([1, 4, 9])).toEqual(Math.max(1, 4, 9));
     	});
+
+        it("returns undefined if you call it with anything other than an array", function() {
+            expect(min("foo")).not.toBeDefined();
+        });
     });
 
     describe("pow", function() {
