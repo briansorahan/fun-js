@@ -355,12 +355,36 @@ fun.diff = function(a, b) {
 fun.replicate = function(n, v) {
     if (! fun.isNumber(n)) {
         return undefined;
+    } else if (n === 0) {
+        return [];
     } else {
-        var arr = new Array(n);
-        for (var i = 0; i < n; i++) {
+        var _n = Math.floor(n);
+        var arr = new Array(_n);
+        for (var i = 0; i < _n; i++) {
             arr[i] = v;
         }
         return arr;
+    }
+}.autoCurry();
+
+//+ take :: Int -> [a] -> [a]
+fun.take = function(n, xs) {
+    if (! (fun.isNumber(n) && fun.isArray(xs))) {
+        return undefined;
+    } else if (n === 0 || fun.empty(xs)) {
+        return [];
+    } else {
+        var len = xs.length;
+        var _n = Math.floor(n);
+        if (_n >= len) {
+            return xs;
+        } else {
+            var arr = new Array(_n);
+            for (var i = 0; i < _n; i++) {
+                arr[i] = xs[i];
+            }
+            return arr;
+        }
     }
 }.autoCurry();
 

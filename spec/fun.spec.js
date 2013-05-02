@@ -630,6 +630,48 @@ describe("fun.js", function() {
         it("returns undefined if the first arg is not a number", function() {
             expect(replicate("weird", "something")).not.toBeDefined();
         });
+
+        it("uses Math.floor if the first argument is a float", function() {
+            expect(replicate(3.4, "a")).toEqual(["a", "a", "a"]);
+        });
+
+        it("returns the empty list if the first arg is 0", function() {
+            expect(replicate(0, null)).toEqual([]);
+        });
+    });
+
+    describe("take", function() {
+		var takeFour = take(4);
+
+		it(isGlobalizable, function() {
+			expect(typeof take).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof takeFour).toEqual('function');
+		});
+		
+		it("returns an Array of the first n elements of the second arg", function() {
+            expect(takeFour([1,2,3,4,5,6,7,8])).toEqual([1,2,3,4]);
+		});
+
+        it("returns undefined if the first arg is not a number or the second arg is not an Array", function() {
+            expect(take("weird", ["foo", "bar"])).not.toBeDefined();
+            expect(take(3, "foobar")).not.toBeDefined();
+        });
+
+        it("uses Math.floor if the first argument is a float", function() {
+            expect(take(3.4, [1,2,3,4,5])).toEqual([1,2,3]);
+        });
+
+        it("returns the empty list if the first arg is 0 or the second arg is the empty list", function() {
+            expect(take(0, [1,2,3])).toEqual([]);
+            expect(take(5, [])).toEqual([]);
+        });
+
+        it("returns the second arg if n >= length of the array", function() {
+            expect(take(4, [1,2,3])).toEqual([1,2,3]);
+        });
     });
 
 	////////////////////////////////////////
