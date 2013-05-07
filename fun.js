@@ -339,14 +339,21 @@ fun.elem = function(xs, x) {
     return xs.indexOf(x) >= 0;
 }.autoCurry();
 
+//+ complement :: [a] -> [a] -> [a]
+// Return a list of all elements of ys
+// that are not elements of xs.
+var complement = function(xs, ys) {
+    return fun.filter(fun.compose(fun.not, fun.elem(xs)), ys);
+};
+
 //+ diff :: [a] -> [a] -> Object
 fun.diff = function(a, b) {
     if (! (fun.isArray(a) && fun.isArray(b))) {
         return undefined;
     } else {
         return {
-            added: fun.filter(fun.compose(fun.not, fun.elem(a)))(b),
-            removed: fun.filter(fun.compose(fun.not, fun.elem(b)))(a)
+            added: complement(a, b),
+            removed: complement(b, a)
         };
     }
 }.autoCurry();
