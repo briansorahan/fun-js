@@ -115,6 +115,16 @@ fun.flip = function(f) {
     };
 };
 
+//+ fst :: (a -> b -> c) -> a
+fun.fst = function(a, b) {
+    return a;
+};
+
+//+ snd :: (a -> b -> c) -> a
+fun.snd = function(a, b) {
+    return b;
+};
+
 ////////////////////////////////////////
 // Logic
 ////////////////////////////////////////
@@ -425,6 +435,9 @@ fun.objMap = function(f, obj) {
 	}
 	return result;
 }.autoCurry();
+
+fun.keys = fun.objMap(fun.fst);
+fun.vals = fun.objMap(fun.snd);
 
 //+ merge :: Object -> Object -> Object
 // Note: Properties of the second argument take precedence

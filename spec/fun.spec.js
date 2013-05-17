@@ -721,22 +721,46 @@ describe("fun.js", function() {
     });
 
 	describe("objMap", function() {
-		var values = objMap(function(k,v) { return v; });
+		var incrVals = objMap(function(k,v) { return v + 1; });
 
 		it(isGlobalizable, function() {
 			expect(typeof objMap).toEqual('function');
 		});
 
     	it(isCurriable, function() {
-    	    expect(typeof values).toEqual('function');
+    	    expect(typeof incrVals).toEqual('function');
     	});
 		
 		it("maps over key/value pairs of an object", function() {
 			var input = {a: 1, b: 2, c: 3};
-			var incrVals = objMap(function(k,v) { return v + 1; });
 			expect(incrVals(input)).toEqual([2,3,4]);
 		});
 	});
+
+    describe("keys", function() {
+		var input = {a: 1, b: 2, c: 3};
+
+		it(isGlobalizable, function() {
+			expect(typeof keys).toEqual('function');
+		});
+
+        it("returns the keys (using hasOwnProperty) of an Object", function() {
+            expect(keys(input)).toEqual(["a", "b", "c"]);
+        });
+    });
+
+    describe("vals", function() {
+		var input = {a: 1, b: 2, c: 3};
+        var keyMsg = "(using hasOwnProperty to get the keys)";
+
+		it(isGlobalizable, function() {
+			expect(typeof vals).toEqual('function');
+		});
+
+        it("returns the values " + keyMsg + " of an Object", function() {
+            expect(vals(input)).toEqual([1, 2, 3]);
+        });
+    });
 
 	////////////////////////////////////////
 	// Logic
