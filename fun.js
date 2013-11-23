@@ -539,4 +539,9 @@ fun.import = function(options) {
 	}, fun);
 };
 
-module.exports = fun;
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = fun;    
+}
+else {
+    window.fun = fun;   
+}
