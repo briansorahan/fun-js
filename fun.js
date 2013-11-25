@@ -69,7 +69,7 @@ var toArray = function (arrish, n) {
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ curry :: f -> _ ... -> g
 var curry = function (fn) {
-    var args = toArray(arguments, 1);
+    var args = slice.call(arguments, 1);
     return function () {
 	return fn.apply(this, args.concat(toArray(arguments)));
     };
@@ -540,3 +540,4 @@ fun.import = function(options) {
 };
 
 module.exports = fun;
+
