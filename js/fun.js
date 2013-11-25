@@ -556,5 +556,8 @@ fun.import = function(options) {
 	}, fun);
 };
 
-module.exports = fun;
+// node.js
+if (typeof module !== "undefined") {
+    module.exports = fun;
+}
 
