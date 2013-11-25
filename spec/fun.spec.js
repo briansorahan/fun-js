@@ -777,7 +777,7 @@ describe("fun.js", function() {
 
     describe("reduceOwn", function() {
         var oneLetterProps = reduceOwn(function(result, k, v) {
-            if (typeof k === "string" && k.length === 1) {
+            if (k.length === 1) {
                 result[k] = v;
             }
         });
