@@ -218,6 +218,22 @@ describe("fun.js", function() {
 	// Function
 	////////////////////////////////////////
 
+    describe("curry", function() {
+        it("can be called on any Function object", function() {
+            expect(typeof Function.prototype.autoCurry).toEqual('function');
+        });
+
+        it("can be partially applied with one argument", function() {
+            var add1 = curry(add, 1);
+            expect(add1(1)).toEqual(2);
+        });
+
+        it("can be partially applied with more than one argument", function() {
+            var add4 = curry(add3, 2, 2);
+            expect(add4(1)).toEqual(5);
+        });
+    });
+
     describe("autoCurry", function() {
 		it("can be called on any Function object", function() {
 			expect(typeof Function.prototype.autoCurry).toEqual('function');
