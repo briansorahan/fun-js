@@ -82,6 +82,18 @@ describe("fun.js", function() {
 		return y - x;
     }.autoCurry();
 
+    // var add = curry(function(x, y) {
+	// 	return x + y;
+    // });
+
+    // var add3 = curry(function(x, y, z) {
+	// 	return x + y + z;
+    // });
+
+    // var subtract = curry(function(x, y) {
+	// 	return y - x;
+    // });
+
     describe("id", function() {
 		it(isGlobalizable, function() {
 			expect(typeof id).toEqual('function');

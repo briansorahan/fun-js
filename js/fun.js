@@ -56,8 +56,8 @@ fun.isNonNullObject = function(obj) {
 //+ isNumber :: _ -> Boolean
 fun.isNumber = function(n) {
     return (typeof n === 'number')
-	&& !isNaN(parseFloat(n))
-	&& isFinite(n);
+	    && !isNaN(parseFloat(n))
+	    && isFinite(n);
 };
 
 ////////////////////////////////////////
@@ -66,17 +66,19 @@ fun.isNumber = function(n) {
 
 //+ toArray :: a -> [b]
 var toArray = function (arrish, n) {
-    return typeof n === 'number' ?
-	slice.call(arrish, n)
-	: slice.call(arrish);
+    if (typeof arrish === "object") {
+        return typeof n === 'number' ? slice.call(arrish, n) : slice.call(arrish);
+    } else {
+        return undefined;
+    }
 };
 
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ curry :: f -> _ ... -> g
 var curry = function (fn) {
-    var args = slice.call(arguments, 1);
+    var args = Array.prototype.slice.call(arguments, 1);
     return function () {
-	return fn.apply(this, args.concat(toArray(arguments)));
+	    return fn.apply(fn, args.concat(Array.prototype.slice.call(arguments)));
     };
 };
 
@@ -89,12 +91,13 @@ var autoCurry = function (fn, numArgs) {
     var expectedArgs = numArgs || fn.length;
     return function () {
         if (arguments.length < expectedArgs) {
-            return expectedArgs - arguments.length > 0 ?
-                autoCurry(curry.apply(this, [fn].concat(toArray(arguments))),
-                          numArgs - arguments.length) :
-                curry.apply(this, [fn].concat(toArray(arguments)));
-        }
-        else {
+            // A curried version of fn
+            var curried = curry.apply(this, [fn].concat(Array.prototype.slice.call(arguments)));
+            var rem = numArgs - arguments.length;
+            // If we still don't have the expected number of arguments,
+            // return 
+            return expectedArgs - arguments.length > 0 ? autoCurry(curried, rem) : curried;
+        } else {
             return fn.apply(this, arguments);
         }
     };
@@ -106,7 +109,7 @@ Function.prototype.autoCurry = function(n) {
 
 //+ compose :: f -> g -> h 
 fun.compose = function () {
-    var fns = toArray(arguments), numFns = fns.length;
+    var fns = Array.prototype.slice.call(arguments), numFns = fns.length;
     return function () {
         var i, returnValue = fns[numFns -1].apply(this, arguments);
         for (i = numFns - 2; i > -1; i--) {
@@ -139,21 +142,21 @@ fun.snd = function(a, b) {
 
 //+ and :: _ ... -> Boolean
 fun.and = function () {
-    var args = slice.call(arguments);
+    var args = Array.prototype.slice.call(arguments);
     return function () {
 	return reduce(function(acc, v) {
 	    return acc && v;
-	}, true, args.concat(slice.call(arguments)));
+	}, true, args.concat(Array.prototype.slice.call(arguments)));
     };
 }.autoCurry();
 
 //+ or :: _ ... -> Boolean
 fun.or = function () {
-    var args = slice.call(arguments);
+    var args = Array.prototype.slice.call(arguments);
     return function () {
 	return reduce(function(acc, v) {
 	    return acc || v;
-	}, false, args.concat(slice.call(arguments)));
+	}, false, args.concat(Array.prototype.slice.call(arguments)));
     };
 }.autoCurry();
 
@@ -281,7 +284,7 @@ fun.head = function(xs) {
 
 //+ tail :: [a] -> a
 fun.tail = function(xs) {
-    return xs.length ? slice.call(xs, 1) : [];
+    return xs.length ? Array.prototype.slice.call(xs, 1) : [];
 };
 
 //+ concat :: [_] -> [_] -> [_]
@@ -331,7 +334,7 @@ fun.slice = function(lb, ub, xs) {
 
 //+ reverse :: [a] -> [a]
 fun.reverse = function(xs) {
-    return slice.call(xs, 0).reverse();
+    return Array.prototype.slice.call(xs, 0).reverse();
 };
 
 //+ indexOf :: [a] -> a -> Int
