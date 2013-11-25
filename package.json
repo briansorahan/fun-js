@@ -1,0 +1,28 @@
+{
+    "name" : "fun-js",
+    "version" : "0.0.1",
+    "description" : "Another functional programming library for js",
+    "keywords" : [
+        "functional"
+    ],
+    "homepage" : "http://github.com/briansorahan/fun-js",
+    "author" : {
+        "name" : "Brian Sorahan",
+        "email" : "bsorahan@gmail.com",
+        "url" : "http://github.com/briansorahan"
+    },
+    "files" : [
+        "fun.js"
+    ],
+    "main" : "fun",
+    "repository" : {
+        "type" : "git",
+        "url" : "http://github.com/briansorahan/fun-js.git"
+    },
+    "devDependencies" : [
+        "jasmine-node"
+    ],
+    "scripts" : {
+        "test" : "./test"
+    }
+}
