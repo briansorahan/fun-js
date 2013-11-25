@@ -48,6 +48,11 @@ fun.isObject = function(obj) {
     return ((typeof obj === "object") && (! fun.isArray(obj)));
 };
 
+//+ isNonNullObject :: _ -> Boolean
+fun.isNonNullObject = function(obj) {
+    return obj !== undefined && obj !== null && fun.isObject(obj);
+};
+
 //+ isNumber :: _ -> Boolean
 fun.isNumber = function(n) {
     return (typeof n === 'number')
@@ -74,6 +79,9 @@ var curry = function (fn) {
 	return fn.apply(this, args.concat(toArray(arguments)));
     };
 };
+
+// make curry public
+fun.curry = curry;
 
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ autoCurry :: Function -> Function
@@ -443,7 +451,6 @@ fun.vals = fun.objMap(fun.snd);
 // Note: Properties of the second argument take precedence
 //       over identically-named properties of the first
 //       argument.
-// TODO unit tests boyyyyeeeeee!
 fun.merge = function(obj1, obj2) {
 	var result = {};
     [obj1, obj2].forEach(function(obj) {
@@ -455,6 +462,16 @@ fun.merge = function(obj1, obj2) {
     });
     return result;
 };
+
+//+ reduceOwn :: Function -> Object -> Object
+fun.reduceOwn = function(f, obj) {
+    var wrapper = function(result, k) {
+        f(result, k, obj[k]);
+        return result;
+    };
+
+    return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
+}.autoCurry();
 
 ////////////////////////////////////////
 // String
@@ -539,5 +556,8 @@ fun.import = function(options) {
 	}, fun);
 };
 
-module.exports = fun;
+// node.js
+if (typeof module !== "undefined") {
+    module.exports = fun;
+}
 

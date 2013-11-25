@@ -1,2 +1,2 @@
 #!/bin/bash
-node_modules/jasmine-node/bin/jasmine-node --verbose .
+node_modules/jasmine-node/bin/jasmine-node --verbose tests

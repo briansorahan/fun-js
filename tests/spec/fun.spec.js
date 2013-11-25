@@ -1,4 +1,8 @@
-require('../fun').import({ under: global });
+if (typeof require === "function") {
+    require('../../js/fun').import({ under: global });
+} else if (typeof fun === "object") {
+    fun.import({ under: window });
+}
 
 describe("fun.js", function() {
     var isGlobalizable = "can be imported into the global namespace";
@@ -759,6 +763,39 @@ describe("fun.js", function() {
 
         it("returns the values " + keyMsg + " of an Object", function() {
             expect(vals(input)).toEqual([1, 2, 3]);
+        });
+    });
+
+    describe("merge", function() {
+        var a = { foo: 1, bar: 2, snork: ["hi"] },
+            b = { eep: 4, op: 5, ork: 6, foo: { prop: "string" }};
+
+        it(isGlobalizable, function() {
+            expect(typeof merge).toEqual("function");
+        });
+
+        it("does a shallow merge of two objects, with values from the second taking precedence", function() {
+            expect(merge(a, b)).toEqual({ foo: { prop: "string" }, bar: 2, snork: ["hi"], eep: 4, op: 5, ork: 6 });
+        });
+    });
+
+    describe("reduceOwn", function() {
+        var oneLetterProps = reduceOwn(function(result, k, v) {
+            if (k.length === 1) {
+                result[k] = v;
+            }
+        });
+
+        it(isGlobalizable, function() {
+            expect(typeof reduceOwn).toEqual("function");
+        });
+
+        it(isCurriable, function() {
+            expect(typeof oneLetterProps).toEqual("function");
+        });
+
+        it("reduces an Object to a result Object using a callback that accepts the result object and key/value pairs", function() {
+            expect(oneLetterProps({ a: 1, ab: 3, abc: 5 })).toEqual({ a: 1 });
         });
     });
 
