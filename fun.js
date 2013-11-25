@@ -75,6 +75,9 @@ var curry = function (fn) {
     };
 };
 
+// make curry public
+fun.curry = curry;
+
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ autoCurry :: Function -> Function
 var autoCurry = function (fn, numArgs) {
