@@ -6,7 +6,6 @@
  */
 
 var fun = {};
-var slice = Array.prototype.slice;
 
 /**
  * id :: _ -> _
@@ -63,15 +62,6 @@ fun.isNumber = function(n) {
 ////////////////////////////////////////
 // Function
 ////////////////////////////////////////
-
-//+ toArray :: a -> [b]
-var toArray = function (arrish, n) {
-    if (typeof arrish === "object") {
-        return typeof n === 'number' ? slice.call(arrish, n) : slice.call(arrish);
-    } else {
-        return undefined;
-    }
-};
 
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ curry :: f -> _ ... -> g
