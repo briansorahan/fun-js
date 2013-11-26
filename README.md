@@ -26,7 +26,9 @@ See [project page][1] for test suite output.
 
 ```javascript
 var assert = require("assert");
-var fun = require("./js/fun").import();
+
+// import *everything*
+var fun = require("fun").import();
 
 // Currying
 var findBrians = filter(function(person) {
