@@ -66,7 +66,7 @@ assert(hasBrian2(beatles), "double-checking that Brian is a legendary rock star"
 
 ```javascript
 // global reference stored under window.fun...
-// selectively import
+// selectively import 'curry' and 'compose'
 fun.import({
     select: [
         "curry",

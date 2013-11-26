@@ -584,6 +584,8 @@ fun.import = function(options) {
             }
 		}
 	}, fun);
+
+    return fun;
 };
 
 // if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
