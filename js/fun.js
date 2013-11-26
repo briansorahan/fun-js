@@ -294,12 +294,9 @@ fun.all = function (f, xs) {
 
 //+ find :: (a -> Boolean) -> [a] -> a
 fun.find = function(f, xs) {
-    var len = xs.length;
-    for (var i = 0; i < len; i++) {
-	var x = xs[i];
-	if (f(x)) return x;
-    }
-    return undefined;
+    return xs.reduce(function(result, x) {
+        return f(x) ? x : result;
+    }, undefined);
 }.autoCurry();
 
 //+ zip :: (a -> b -> _) -> [a] -> [b] -> _
@@ -538,22 +535,65 @@ fun.trimLeft = function(string) {
     return string.trimLeft();
 };
 
+fun.isCommonJS = function() {
+    return (typeof require === "function");
+};
 
+fun.isNodeJS = function() {
+    return fun.isCommonJS()
+        && (typeof module !== 'undefined')
+        && (typeof module.exports !== 'undefined');
+};
+
+fun.isBrowser = function() {
+    return typeof window === "object";
+};
 
 // Make functions globally available as properties of an object
 //+ import :: Object -> _
 fun.import = function(options) {
 	var namespace = fun.has("under", options) ? options.under : undefined;
-	var hiding = fun.has("hiding", options) ? options.hiding : [];
+
+    if (namespace === undefined) {
+        if (fun.isNodeJS()) {
+            namespace = global;
+        } else if (fun.isBrowser()) {
+            namespace = window;
+        }
+    }
+
+	var without = fun.has("without", options) ? options.without : [];
+	var select = fun.has("select", options) ? options.select : [];
+
+    /*
+     * A function will not be imported if:
+     * (1) It is in 'without';
+     * (2) It is not in 'select' and 'select' is nonempty.
+     * Note that all functions are imported if both 'select' and 'without' are empty.
+     */
 	fun.objMap(function(k, v) {
-		if (namespace) {
-			namespace[k] = fun.contains(k, hiding) ? undefined : v;
+		if (fun.isNonNullObject(namespace) && k !== "import") {
+            if (fun.contains(k, without)) {
+                namespace[k] = undefined;
+            } else if (fun.contains(k, select)) {
+                namespace[k] = v;
+            } else if (!fun.empty(select)) {
+                namespace[k] = undefined;
+            } else if (fun.empty(select) && fun.empty(without)) {
+                namespace[k] = v;
+            }
 		}
 	}, fun);
 };
 
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+// if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+//     module.exports = fun;    
+// } else {
+//     window.fun = fun;
+// }
+
+if (fun.isNodeJS()) {
     module.exports = fun;    
-} else {
+} else if (fun.isBrowser()) {
     window.fun = fun;
 }

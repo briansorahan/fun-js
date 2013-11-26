@@ -1,5 +1,8 @@
+var fun;
+
 if (typeof require === "function") {
-    require('../../js/fun').import({ under: global });
+    fun = require('../../js/fun');
+    fun.import({ under: global });
 } else if (typeof fun === "object") {
     fun.import({ under: window });
 }
@@ -1368,6 +1371,63 @@ describe("fun.js", function() {
 		it("functions exactly like the builtin String.trimLeft", function() {
 			expect(trimLeft(string)).toEqual(string.trimLeft());
 		});
+    });
+
+    describe("import", function() {
+        it("does not import itself into the global namespace", function() {
+            if (fun.isNodeJS()) {
+                expect(typeof global.import).toEqual("undefined");
+            } else if (fun.isBrowser()) {
+                expect(typeof window.import).toEqual("undefined");
+            }
+        });
+
+        it("can exclude functions using the 'without' property", function() {
+            fun.import({
+                without: [
+                    "identical"
+                ]
+            });
+
+            expect(typeof identical).toBe("undefined");
+            expect(typeof compose).toBe("function");
+        });
+
+        it("can selectively include functions using the 'select' property", function() {
+            fun.import({
+                select: [
+                    "compose"
+                ]
+            });
+
+            expect(typeof identical).toBe("undefined");
+            expect(typeof take).toBe("undefined");
+            expect(typeof drop).toBe("undefined");
+            expect(typeof compose).toBe("function");
+        });
+
+        it("gives without precedence over select", function() {
+            fun.import({
+                without: [
+                    "compose"
+                ],
+                select: [
+                    "compose"
+                ]
+            });
+            expect(typeof compose).toBe("undefined");
+        });
+
+        it("supports a user-defined global object", function() {
+            var myglobal = {};
+            fun.import({
+                under: myglobal,
+                select: [
+                    "compose"
+                ]
+            });
+            expect(typeof myglobal.compose).toEqual("function");
+        });
     });
 });
 
