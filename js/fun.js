@@ -392,17 +392,20 @@ fun.take = function(n, xs) {
     } else if (n === 0 || fun.empty(xs)) {
         return [];
     } else {
-        var len = xs.length;
         var _n = Math.floor(n);
-        if (_n >= len) {
-            return xs;
-        } else {
-            var arr = new Array(_n);
-            for (var i = 0; i < _n; i++) {
-                arr[i] = xs[i];
-            }
-            return arr;
-        }
+        return xs.slice(0, _n);
+    }
+}.autoCurry();
+
+//+ drop :: Int -> [a] -> [a]
+fun.drop = function(n, xs) {
+    if (! (fun.isNumber(n) && fun.isArray(xs))) {
+        return undefined;
+    } else if (fun.empty(xs)) {
+        return [];
+    } else {
+        var _n = Math.floor(n);
+        return xs.slice(_n);
     }
 }.autoCurry();
 

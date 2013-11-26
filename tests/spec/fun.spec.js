@@ -533,6 +533,9 @@ describe("fun.js", function() {
 		it("functions exactly like the builtin Array.slice", function() {
 			expect(sliceMiddle(cities)).toEqual(cities.slice(lower, upper));
 		});
+
+        it("detects if it was only passed the lower bound", function() {
+        });
     });
 
     describe("indexOf", function() {
@@ -703,6 +706,38 @@ describe("fun.js", function() {
 
         it("returns the second arg if n >= length of the array", function() {
             expect(take(4, [1,2,3])).toEqual([1,2,3]);
+        });
+    });
+
+    describe("drop", function() {
+		var dropFour = drop(4);
+
+		it(isGlobalizable, function() {
+			expect(typeof take).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof dropFour).toEqual('function');
+		});
+		
+		it("returns the suffix after the first n elements of the second arg", function() {
+            expect(dropFour([1,2,3,4,5,6,7,8])).toEqual([5,6,7,8]);
+		});
+
+        it("returns undefined if the first arg is not a number or the second arg is not an Array", function() {
+            expect(drop("weird", ["foo", "bar"])).not.toBeDefined();
+            expect(drop(3, "foobar")).not.toBeDefined();
+        });
+
+        it("uses Math.floor if the first argument is a float", function() {
+            expect(drop(3.4, [1,2,3,4,5])).toEqual([4,5]);
+        });
+
+        it("behaves exactly like the builtin Array.slice with one arg otherwise", function() {
+            var arr = [1,2,3,4,5];
+            expect(drop(-7, arr)).toEqual(arr);
+            expect(drop(0, arr)).toEqual(arr);
+            expect(drop(7, arr)).toEqual([]);
         });
     });
 
