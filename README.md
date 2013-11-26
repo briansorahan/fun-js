@@ -6,9 +6,15 @@ Functional Programming for Javascript
 
 ### install
 
+#### node
+
 ```
 $ npm install fun-js
 ```
+
+#### browser
+
+Drop fun.js into your project and see usage below.
 
 ### test
 
