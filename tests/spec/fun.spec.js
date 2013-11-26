@@ -735,7 +735,7 @@ describe("fun.js", function() {
 
         it("behaves exactly like the builtin Array.slice with one arg otherwise", function() {
             var arr = [1,2,3,4,5];
-            expect(drop(-7, arr)).toEqual(arr);
+            expect(drop(-2, arr)).toEqual([4,5]);
             expect(drop(0, arr)).toEqual(arr);
             expect(drop(7, arr)).toEqual([]);
         });
