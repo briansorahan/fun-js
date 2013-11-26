@@ -4,7 +4,7 @@
 
 Functional Programming for Javascript
 
-### install
+## install
 
 #### node
 
@@ -16,7 +16,7 @@ $ npm install fun-js
 
 Drop fun.js into your project and see usage below.
 
-### test
+## test
 
 ```
 $ ./test
@@ -24,7 +24,7 @@ $ ./test
 
 See [project page][1] for test suite output.
 
-### usage
+## usage
 
 **Note: fun-js adds a method called 'autoCurry' to Function.prototype**
 
@@ -80,7 +80,7 @@ if (typeof curry !== "function" || typeof compose !== "function") {
     
 ```
 
-### more info
+## more info
 [project page][1]
 
 [1]: http://briansorahan.github.io/fun-js
