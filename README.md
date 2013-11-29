@@ -33,14 +33,14 @@ See [project page][1] for test suite output.
 ```javascript
 var assert = require("assert");
 
-// import *everything*
+// import *everything* into the global context
 var fun = require("fun").import();
 
 // Currying
 var findBrians = filter(function(person) {
     return person.name === "Brian";
 });
-assert.strictEqual(typeof findBrians, "function", "find can be curried");
+assert.strictEqual(typeof findBrians, "function", "filter can be curried");
 
 // Composition
 var hasBrian = compose(compose(not, empty), findBrians);
@@ -66,7 +66,7 @@ assert(hasBrian2(beatles), "double-checking that Brian is a legendary rock star"
 
 ```javascript
 // global reference stored under window.fun...
-// selectively import 'curry' and 'compose'
+// selectively import 'curry' and 'compose' into the global context
 fun.import({
     select: [
         "curry",
