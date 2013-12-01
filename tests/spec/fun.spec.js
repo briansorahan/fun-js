@@ -37,7 +37,7 @@ describe("fun.js", function() {
 		{
 			name: "sam",
 			id: 2,
-			comments: 31
+			comments: 81
 		},
 		{
 			name: "jeremy",
@@ -288,6 +288,30 @@ describe("fun.js", function() {
     	});
     });
 
+    describe("fst", function() {
+    	it(isGlobalizable, function() {
+			expect(typeof fst).toEqual('function');
+		});
+
+        it("accepts a single Pair argument, or just returns the first arg", function() {
+            expect(fst(1, 2)).toEqual(1);
+        });
+    });
+
+    describe("snd", function() {
+    	it(isGlobalizable, function() {
+			expect(typeof snd).toEqual('function');
+		});
+
+        it("accepts a single Pair argument, or just returns the second arg", function() {
+            expect(snd(1, 2)).toEqual(2);
+        });
+
+        it("will return the second of two Pair arguments", function() {
+            expect(snd(Pair(1, 2), Pair(3, 4)).toArray()).toEqual([3, 4]);
+        });
+    });
+
 	////////////////////////////////////////
 	// Array
 	////////////////////////////////////////
@@ -407,17 +431,63 @@ describe("fun.js", function() {
 		});
     });
 
+    describe("last", function() {
+		it(isGlobalizable, function() {
+			expect(typeof last).toEqual('function');
+		});
+
+		it("returns undefined for non-Arrays", function() {
+			expect(last("foo")).not.toBeDefined();
+			expect(last(7)).not.toBeDefined();
+			expect(last({})).not.toBeDefined();
+		});
+
+		it("returns an empty Array for empty Arrays", function() {
+			expect(last([])).toEqual([]);
+		});
+
+		it("returns [...].slice(-1)[0] for non-empty Arrays", function() {
+			expect(last([0,1,2])).toEqual(2);
+		});
+    });
+
     describe("tail", function() {
 		it(isGlobalizable, function() {
 			expect(typeof tail).toEqual('function');
 		});
 
+        it("returns undefined for non-Arrays", function() {
+			expect(tail("foo")).not.toBeDefined();
+			expect(tail(7)).not.toBeDefined();
+			expect(tail({})).not.toBeDefined();
+        });
+
 		it("returns an empty Array for empty Arrays", function() {
 			expect(tail([])).toEqual([]);
 		});
 
-		it("returns [].slice(1) for non-empty Arrays", function() {
+		it("returns [...].slice(1) for non-empty Arrays", function() {
 			expect(tail([0,1,2])).toEqual([1,2]);
+		});
+    });
+
+    describe("init", function() {
+		it(isGlobalizable, function() {
+			expect(typeof init).toEqual('function');
+		});
+
+        it("returns undefined for non-Arrays", function() {
+			expect(init("foo")).not.toBeDefined();
+			expect(init(7)).not.toBeDefined();
+			expect(init({})).not.toBeDefined();
+        });
+
+		it("returns an empty Array for empty Arrays", function() {
+			expect(init([])).toEqual([]);
+		});
+
+		it("returns [...].slice(1) for non-empty Arrays", function() {
+			expect(init([0,1,2])).toEqual([0,1]);
 		});
     });
 
@@ -469,11 +539,40 @@ describe("fun.js", function() {
 		});
 
 		it("finds the first array element that satisfies the predicate", function() {
-			expect(findSam(users).comments).toBe(31);
+			expect(findSam(users).comments).toBe(81);
 		});
     });
 
     describe("zip", function() {
+		var nums1 = [1,1,2,3,5,8,13];
+		var nums2 = [0,1,2,3,4];
+		
+		it(isGlobalizable, function() {
+			expect(typeof zip).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof zip([])).toEqual('function');
+		});
+
+		it("returns a list whose length is equal to the shorter of the two input lists", function() {
+			expect(zip(nums1, nums2).length).toEqual(nums2.length);
+		});
+
+		it("Pair's up elements of the input lists", function() {
+            var zipped = zip(nums1, nums2);
+            var allPairs = all(fun.isPair, zipped);
+
+            var listsMatch = zipped.reduce(function(acc, p, i) {
+                return acc && fst(p) === nums1[i] && snd(p) === nums2[i];
+            }, true);
+
+			expect(allPairs).toBe(true);
+			expect(listsMatch).toBe(true);
+		});
+    });
+
+    describe("zipWith", function() {
 		var nums1 = [1,1,2,3,5,8,13];
 		var nums2 = [0,1,2,3,4];
 		var zipSum = [1,2,4,6,9];
@@ -481,12 +580,12 @@ describe("fun.js", function() {
 		var result;
 		
 		beforeEach(function() {
-			sumTwo = zip(add);
+			sumTwo = zipWith(add);
 			result = sumTwo(nums1, nums2);
 		});
 
 		it(isGlobalizable, function() {
-			expect(typeof zip).toEqual('function');
+			expect(typeof zipWith).toEqual('function');
 		});
 
 		it(isCurriable, function() {
@@ -500,6 +599,40 @@ describe("fun.js", function() {
 		it("applies the given function to pairs of elements of the input lists", function() {
 			expect(sumTwo(nums1, nums2)).toEqual(zipSum);
 		});
+    });
+
+    describe("unzip", function() {
+		it(isGlobalizable, function() {
+			expect(typeof unzip).toEqual('function');
+		});
+
+        it("returns undefined if it is not passed an Array", function() {
+            expect(unzip("foo")).not.toBeDefined();
+            expect(unzip(4)).not.toBeDefined();
+            expect(unzip({})).not.toBeDefined();
+        });
+
+        it("returns the empty array if it is passed an empty Array", function() {
+            expect(unzip([])).toEqual([]);
+        });
+
+        it("converts an Array of Pair's to a Pair of Array's", function() {
+            var arr = [
+                Pair(1, 2),
+                Pair(3, 4),
+                Pair("foo", "bar"),
+                Pair([1, 2], [3, 4])
+            ];
+
+            var unzipped = unzip(arr);
+            var areEqual = arr.reduce(function(acc, p, i) {
+                return acc
+                    && fst(p) === fst(unzipped)[i]
+                    && snd(p) === snd(unzipped)[i];
+            }, true);
+
+            expect(areEqual).toBe(true);
+        });
     });
 
     describe("join", function() {
@@ -743,6 +876,154 @@ describe("fun.js", function() {
             expect(drop(7, arr)).toEqual([]);
         });
     });
+
+    describe("splitAt", function() {
+		var splitAtFour = splitAt(4);
+
+		it(isGlobalizable, function() {
+			expect(typeof splitAt).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof splitAtFour).toEqual('function');
+		});
+
+        it("returns undefined if the first arg is not a number or the second arg is not an Array", function() {
+            expect(splitAt("weird", ["foo", "bar"])).not.toBeDefined();
+            expect(splitAt(3, "foobar")).not.toBeDefined();
+        });
+
+        it("returns Pair(take(n, xs), drop(n, xs))", function() {
+            var l = [1, 2, 3, 4, 5, 6, 7, 8];
+            var splitPair = splitAtFour(l);
+            expect(fun.isPair(splitPair)).toBe(true);
+            expect(fst(splitPair)).toEqual([1, 2, 3, 4]);
+            expect(snd(splitPair)).toEqual([5, 6, 7, 8]);
+        });
+    });		
+
+    describe("takeWhile", function() {
+        var wellCommented = compose(gte(50), pluck("comments"));
+		var takeCommented = takeWhile(wellCommented);
+
+		it(isGlobalizable, function() {
+			expect(typeof takeWhile).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof takeWhile).toEqual('function');
+		});
+
+        it("returns undefined if the first arg is not a function or the second arg is not an Array", function() {
+            expect(takeWhile("weird", ["foo", "bar"])).not.toBeDefined();
+            expect(takeWhile(3, "foobar")).not.toBeDefined();
+        });
+
+        it("returns the largest prefix of the list for which all elements return true when passed to the first arg", function() {
+            expect(takeCommented(users)).toEqual([
+                {
+                    name: "brian",
+                    id: 1,
+                    comments: 74
+                },
+		        {
+			        name: "sam",
+			        id: 2,
+			        comments: 81
+		        }
+            ]);
+        });
+    });
+
+    describe("dropWhile", function() {
+        var wellCommented = compose(gte(50), pluck("comments"));
+		var notCommented = dropWhile(wellCommented);
+
+		it(isGlobalizable, function() {
+			expect(typeof dropWhile).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof dropWhile).toEqual('function');
+		});
+
+        it("returns undefined if the first arg is not a function or the second arg is not an Array", function() {
+            expect(dropWhile("weird", ["foo", "bar"])).not.toBeDefined();
+            expect(dropWhile(3, "foobar")).not.toBeDefined();
+        });
+
+        it("returns the suffix remaining after takeWhile(n, xs)", function() {
+            expect(notCommented(users)).toEqual([
+		        {
+			        name: "jeremy",
+			        id: 3,
+			        comments: 38
+		        },
+		        {
+			        name: "ben",
+			        id: 4,
+			        comments: 57
+		        },
+		        {
+			        name: "blake",
+			        id: 5,
+			        comments: 25
+		        }
+            ]);
+        });
+    });		
+
+    describe("span", function() {
+        var wellCommented = compose(gte(50), pluck("comments"));
+		var splitUsers = span(wellCommented);
+        var spanUsers = splitUsers(users);
+
+		it(isGlobalizable, function() {
+			expect(typeof span).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			expect(typeof span).toEqual('function');
+		});
+
+        it("returns undefined if the first arg is not a function or the second arg is not an Array", function() {
+            expect(span("weird", ["foo", "bar"])).not.toBeDefined();
+            expect(span(3, "foobar")).not.toBeDefined();
+        });
+
+        it("returns Pair(takeWhile(n, xs), dropWhile(n, xs))", function() {
+            expect(fst(spanUsers)).toEqual([
+                {
+                    name: "brian",
+                    id: 1,
+                    comments: 74
+                },
+		        {
+			        name: "sam",
+			        id: 2,
+			        comments: 81
+		        }
+            ]);
+
+            expect(snd(spanUsers)).toEqual([
+		        {
+			        name: "jeremy",
+			        id: 3,
+			        comments: 38
+		        },
+		        {
+			        name: "ben",
+			        id: 4,
+			        comments: 57
+		        },
+		        {
+			        name: "blake",
+			        id: 5,
+			        comments: 25
+		        }
+            ]);
+        });
+    });		
 
 	////////////////////////////////////////
 	// Object

@@ -5,12 +5,61 @@
  * @overview Haskell-esque programming in javascript
  */
 
+// exported global object
 var fun = {};
 
-/**
- * id :: _ -> _
- * @function
- */
+// =====
+// Types
+// =====
+
+(function() {
+    var _Pair = function(x, y) {
+        this._x = x;
+        this._y = y;
+    };
+
+    _Pair.prototype.first = function() {
+        return this._x;
+    };
+
+    _Pair.prototype.second = function() {
+        return this._y;
+    };
+
+    _Pair.prototype.toArray = function() {
+        return [ this._x, this._y ];
+    };
+
+    // Pair data constructor
+    fun.Pair = function(x, y) {
+        return new _Pair(x, y);
+    };
+
+    //+ isPair :: _ -> Boolean
+    fun.isPair = function(x) {
+        return x instanceof _Pair;
+    };
+
+    //+ fst :: Pair a b -> a
+    fun.fst = function(a, b) {
+        if (fun.isPair(a) && (typeof b === "undefined")) {
+            return a.first();
+        } else {
+            return a;
+        }
+    };
+
+    //+ snd :: (a -> b -> c) -> a
+    fun.snd = function(a, b) {
+        if (fun.isPair(a) && (typeof b === "undefined")) {
+            return a.second();
+        } else {
+            return b;
+        }
+    };
+})();
+
+//+ id :: _ -> _
 fun.id = function(x) {
     return x;
 };
@@ -19,18 +68,12 @@ fun.id = function(x) {
 // type checking
 ////////////////////////////////////////
 
-/**
- * isNull :: _ -> Boolean
- * @function
- */
+//+ isNull :: _ -> Boolean
 fun.isNull = function(obj) {
     return obj === null;
 };
 
-/**
- * isDefined :: _ -> Boolean
- * @function
- */
+//+ isDefined :: _ -> Boolean
 fun.isDefined = function(obj) {
     return typeof obj !== 'undefined';
 };
@@ -45,6 +88,11 @@ fun.isArray = function(obj) {
 //+ isObject :: _ -> Boolean
 fun.isObject = function(obj) {
     return ((typeof obj === "object") && (! fun.isArray(obj)));
+};
+
+//+ isFunction :: _ -> Boolean
+fun.isFunction = function(f) {
+    return typeof f === "function";
 };
 
 //+ isNonNullObject :: _ -> Boolean
@@ -114,16 +162,6 @@ fun.flip = function(f) {
     return function () {
 	return f(arguments[1], arguments[0]);
     };
-};
-
-//+ fst :: (a -> b -> c) -> a
-fun.fst = function(a, b) {
-    return a;
-};
-
-//+ snd :: (a -> b -> c) -> a
-fun.snd = function(a, b) {
-    return b;
 };
 
 ////////////////////////////////////////
@@ -267,9 +305,19 @@ fun.head = function(xs) {
     return xs.length ? xs[0] : undefined;
 };
 
+//+ last :: [a] -> a
+fun.last = function(xs) {
+    return fun.isArray(xs) ? (xs.length ? xs.slice(-1)[0] : []) : undefined;
+};
+
 //+ tail :: [a] -> a
 fun.tail = function(xs) {
-    return xs.length ? Array.prototype.slice.call(xs, 1) : [];
+    return fun.isArray(xs) ? (xs.length ? xs.slice(1) : []) : undefined;
+};
+
+//+ init :: [a] -> [a]
+fun.init = function(xs) {
+    return fun.isArray(xs) ? (xs.length ? xs.slice(0, -1) : []) : undefined;
 };
 
 //+ concat :: [_] -> [_] -> [_]
@@ -294,15 +342,48 @@ fun.find = function(f, xs) {
     }, undefined);
 }.autoCurry();
 
-//+ zip :: (a -> b -> _) -> [a] -> [b] -> _
-fun.zip = function(f, xs, ys) {
+//+ zip :: [a] -> [b] -> [ Pair a b ]
+fun.zip = function(xs, ys) {
+    if (! (fun.isArray(xs) && fun.isArray(ys))) {
+        return undefined;
+    } else if (fun.empty(xs) || fun.empty(ys)) {
+        return [];
+    } else if (xs.length > ys.length) {
+        return ys.reduce(function(acc, y, i) {
+            return acc.concat(fun.Pair(xs[i], y));
+        }, []);
+    } else {
+        return xs.reduce(function(acc, x, i) {
+            return acc.concat(fun.Pair(x, ys[i]));
+        }, []);
+    }
+}.autoCurry();
+
+//+ zipWith :: (a -> b -> _) -> [a] -> [b] -> _
+fun.zipWith = function(f, xs, ys) {
     var len = Math.min(xs.length, ys.length);
     var result = [];
     for (var i = 0; i < len; i++) {
-	result[i] = f(xs[i], ys[i]);
+	    result[i] = f(xs[i], ys[i]);
     }
     return result;
 }.autoCurry();
+
+//+ unzip :: [ Pair a b ] -> Pair([a], [b])
+fun.unzip = function(ps) {
+    if (! fun.isArray(ps)) {
+        return undefined;
+    } else if (fun.empty(ps)) {
+        return [];
+    } else {
+        var lists = ps.reduce(function(acc, p) {
+            acc.as.push(fun.fst(p));
+            acc.bs.push(fun.snd(p));
+            return acc;
+        }, { as: [], bs: [] });
+        return fun.Pair(lists.as, lists.bs);
+    }
+};
 
 //+ join :: String -> [a] -> String
 fun.join = function(string, xs) {
@@ -398,6 +479,72 @@ fun.drop = function(n, xs) {
     } else {
         var _n = Math.floor(n);
         return xs.slice(_n);
+    }
+}.autoCurry();
+
+//+ splitAt :: Int -> [a] -> Pair [a] [a]
+fun.splitAt = function(n, xs) {
+    if (! (fun.isNumber(n) && fun.isArray(xs))) {
+        return undefined;
+    } else if (fun.empty(xs)) {
+        return [];
+    } else {
+        return fun.Pair(fun.take(n, xs), fun.drop(n, xs));
+    }
+}.autoCurry();
+
+//+ takeWhile :: (a -> Boolean) -> [a] -> [a]
+fun.takeWhile = function(p, xs) {
+    if (! (fun.isFunction(p) && fun.isArray(xs))) {
+        return undefined;
+    } else if (fun.empty(xs)) {
+        return [];
+    } else {
+        var result = [];
+        for (var i = 0; i < xs.length; i++) {
+            if (p(xs[i])) {
+                result.push(xs[i]);
+            } else {
+                break;
+            }
+        }
+        return result;
+    }
+}.autoCurry();
+
+//+ dropWhile :: (a -> Boolean) -> [a] -> [a]
+fun.dropWhile = function(p, xs) {
+    if (! (fun.isFunction(p) && fun.isArray(xs))) {
+        return undefined;
+    } else if (fun.empty(xs)) {
+        return [];
+    } else {
+        var i;
+        for (i = 0; i < xs.length; i++) {
+            if (! p(xs[i])) {
+                return xs.slice(i);
+            }
+        }
+
+        return [];
+    }
+}.autoCurry();
+
+//+ span :: (a -> Boolean) -> [a] -> ([a], [a])
+fun.span = function(p, xs) {
+    if (! (fun.isFunction(p) && fun.isArray(xs))) {
+        return undefined;
+    } else if (fun.empty(xs)) {
+        return fun.Pair([], []);
+    } else {
+        var i;
+        for (i = 0; i < xs.length; i++) {
+            if (! p(xs[i])) {
+                return fun.Pair(xs.slice(0, i), xs.slice(i));
+            }
+        }
+
+        return fun.Pair(xs.slice(0), []);
     }
 }.autoCurry();
 
