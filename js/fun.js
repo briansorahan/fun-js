@@ -170,11 +170,6 @@ fun.identical = function (x, y) {
     return x === y;
 }.autoCurry();
 
-//+ looseIdentical :: a -> a -> Boolean
-fun.looseIdentical = function (x, y) {
-    return x == y;
-}.autoCurry();
-
 //+ gt :: a -> a -> Boolean
 fun.gt = function(x, y) {
     return x < y;
@@ -201,12 +196,12 @@ fun.lte = function(x, y) {
 
 //+ incr :: Int -> Int
 fun.incr = function(x) {
-    return typeof x === 'number' ? x + 1 : undefined;
+    return fun.isNumber(x) ? x + 1 : undefined;
 };
 
 //+ decr :: Int -> Int
 fun.decr = function(x) {
-    return typeof x === 'number' ? x - 1 : undefined;
+    return fun.isNumber(x) ? x - 1 : undefined;
 };
 
 //+ min :: [Number] -> Number
