@@ -85,17 +85,26 @@ describe("fun.js", function() {
 		return y - x;
     }.autoCurry();
 
-    // var add = curry(function(x, y) {
-	// 	return x + y;
-    // });
+    // =====
+    // Types
+    // =====
 
-    // var add3 = curry(function(x, y, z) {
-	// 	return x + y + z;
-    // });
+    describe("Pair", function() {
+        var p = Pair(1, 2);
 
-    // var subtract = curry(function(x, y) {
-	// 	return y - x;
-    // });
+        it(isGlobalizable, function() {
+            expect(typeof Pair).toEqual("function");
+        });
+
+        it(isCurriable, function() {
+            expect(typeof Pair(1)).toEqual("function");
+        });
+
+        it("exposes its wrapped values through fst and snd", function() {
+            expect(fst(p)).toEqual(1);
+            expect(snd(p)).toEqual(2);
+        });
+    });
 
     describe("id", function() {
 		it(isGlobalizable, function() {
@@ -111,9 +120,9 @@ describe("fun.js", function() {
 		});
     });
 
-	////////////////////////////////////////
-	// type-checking
-	////////////////////////////////////////
+	// =============
+	// Type Checking
+	// =============
 
     describe("isNull", function() {
 		it(isGlobalizable, function() {
@@ -308,7 +317,7 @@ describe("fun.js", function() {
         });
 
         it("will return the second of two Pair arguments", function() {
-            expect(snd(Pair(1, 2), Pair(3, 4)).toArray()).toEqual([3, 4]);
+            expect(snd(Pair(1, 2), Pair(3, 4))).toEqual(Pair(3, 4));
         });
     });
 
@@ -380,6 +389,13 @@ describe("fun.js", function() {
 			var result = xs.map(_mapf);
 			expect(toNumbers(xs)).toEqual(result);
 		});
+
+        it("operates on Functor typeclasses as well as Array", function() {
+            expect(map(pluck("name"), Maybe(undefined))).toEqual(Maybe(undefined));
+            expect(map(pluck("name"), Maybe(null))).toEqual(Maybe(null));
+            expect(map(pluck("name"), Maybe(4))).toEqual(Maybe(undefined));
+            expect(map(pluck("name"), Maybe({ name: "brian", sign: "libra" }))).toEqual(Maybe("brian" ));
+        });
     });
 
     describe("filter", function() {
