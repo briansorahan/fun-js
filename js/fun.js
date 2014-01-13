@@ -717,7 +717,8 @@ fun.isBrowser = function() {
 // Make functions globally available as properties of an object
 //+ import :: Object -> _
 fun.import = function(options) {
-	var namespace = fun.has("under", options) ? options.under : undefined;
+    var options = options || {},
+        namespace = fun.has("under", options) ? options.under : undefined;
 
     if (namespace === undefined) {
         if (fun.isNodeJS()) {
