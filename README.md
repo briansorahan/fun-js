@@ -34,7 +34,7 @@ See [project page][1] for test suite output.
 var assert = require("assert");
 
 // import *everything* into the global context
-var fun = require("fun").import();
+var fun = require("fun-js").import();
 
 // Currying
 var findBrians = filter(function(person) {
