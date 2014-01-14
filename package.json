@@ -11,6 +11,17 @@
         "email" : "bsorahan@gmail.com",
         "url" : "http://github.com/briansorahan"
     },
+    "contributors" : [
+        {
+            "name" : "Brian Sorahan",
+            "email" : "bsorahan@gmail.com",
+            "url" : "http://github.com/briansorahan"
+        },
+        {
+            "name" : "Linus Norton",
+            "url" : "http://www.linusnorton.co.uk/"
+        }
+    ],
     "files" : [
         "fun.js"
     ],
