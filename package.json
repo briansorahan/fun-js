@@ -1,6 +1,6 @@
 {
     "name" : "fun-js",
-    "version" : "0.0.2",
+    "version" : "0.0.3",
     "description" : "Another functional programming library for js",
     "keywords" : [
         "functional"
