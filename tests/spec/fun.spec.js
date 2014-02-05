@@ -1087,6 +1087,29 @@ describe("fun.js", function() {
     	});
     });
 
+    describe("typeOf", function() {
+		var isString = typeOf("string");
+        var isFunction = typeOf("function");
+        var isObject = typeOf("object");
+
+    	it(isGlobalizable, function() {
+    	    expect(isFunction(typeOf)).toBe(true);
+    	});
+
+    	it(isCurriable, function() {
+    	    expect(isFunction(isString)).toBe(true);
+    	});
+		
+    	it("functions exactly like the builtin typeof operator", function() {
+    	    expect(isString(null)).toBe(false);
+    	    expect(isString(undefined)).toBe(false);
+    	    expect(isString(1)).toBe(false);
+            expect(isString([])).toBe(false);
+            expect(isString("foo")).toBe(true);
+    	    expect(isObject(autechre)).toBe(true);
+    	});
+    });
+
 	describe("objMap", function() {
 		var incrVals = objMap(function(k,v) { return v + 1; });
 

@@ -590,6 +590,11 @@ fun.instanceOf = function(constructor, obj) {
     return obj instanceof constructor;
 }.autoCurry();
 
+//+ typeOf :: Object -> String -> Boolean
+fun.typeOf = function(t, val) {
+    return typeof t === "string" && typeof val === t;
+}.autoCurry();
+
 //+ objMap :: (String -> a -> b) -> Object -> [b]
 // map over key/value pairs in an object
 fun.objMap = function(f, obj) {
