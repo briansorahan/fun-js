@@ -251,6 +251,34 @@ fun.lte = function(x, y) {
     return x >= y;
 }.autoCurry();
 
+var deepEqualWith = function(cmp) {
+    var deqw = function(a, b) {
+        if (fun.isArray(a)) {
+            if (! fun.isArray(b)) return false;
+
+            return a.length === b.length && a.every(function(el, i) {
+                return deqw(el, b[i]);
+            });
+        } else if (fun.isNonNullObject(a)) {
+            if (! fun.isNonNullObject(b)) return false;
+
+            var aprops = Object.getOwnPropertyNames(a);
+            var bprops = Object.getOwnPropertyNames(b);
+
+            return aprops.length === bprops.length && aprops.reduce(function(acc, p) {
+                return acc && b.hasOwnProperty(p) && deqw(a[p], b[p]);
+            }, true);
+        } else {
+            return cmp(a, b);
+        }
+    }.autoCurry();
+
+    return deqw;
+};
+
+fun.deepEqual = deepEqualWith(fun.equal);
+fun.strictDeepEqual = deepEqualWith(fun.identical);
+
 ////////////////////////////////////////
 // Number
 ////////////////////////////////////////
@@ -722,8 +750,9 @@ fun.isBrowser = function() {
 // Make functions globally available as properties of an object
 //+ import :: Object -> _
 fun.import = function(options) {
-    var options = options || {},
-        namespace = fun.has("under", options) ? options.under : undefined;
+    options = options || {};
+
+    var namespace = fun.has("under", options) ? options.under : undefined;
 
     if (namespace === undefined) {
         if (fun.isNodeJS()) {
@@ -758,12 +787,6 @@ fun.import = function(options) {
 
     return fun;
 };
-
-// if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-//     module.exports = fun;    
-// } else {
-//     window.fun = fun;
-// }
 
 if (fun.isNodeJS()) {
     module.exports = fun;    

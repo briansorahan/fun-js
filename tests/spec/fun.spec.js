@@ -1310,6 +1310,120 @@ describe("fun.js", function() {
 		});
     });
 
+    describe("deepEqual", function() {
+		it(isGlobalizable, function() {
+			expect(typeof deepEqual).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			var deepEqualA = deepEqual({ a:1, b:2 });
+			expect(typeof deepEqualA).toBe("function");
+		});
+
+        it("performs non-strict deep comparison", function() {
+            var obj1 = {
+                foo: [ 1, "2", 3, 4 ],
+                bar: {
+                    b: null,
+                    c: "saw",
+                    d: {
+                        e: "glarb"
+                    }
+                }
+            };
+
+            var obj2 = {
+                bar: {
+                    d: {
+                        e: "glarb"
+                    },
+                    c: "saw",
+                    b: null
+                },
+                foo: [ 1, 2, 3, 4 ]
+            };
+
+            var obj3 = {
+                bar: {
+                    d: {
+                        e: "glarb",
+                        f: "glorp"
+                    },
+                    c: "saw",
+                    b: null
+                },
+                foo: [ 1, 2, 3, 4 ]
+            };
+
+            expect(deepEqual(obj1, obj2)).toBe(true);
+            expect(deepEqual(obj2, obj3)).toBe(false);
+            expect(deepEqual(obj3, obj2)).toBe(false);
+        });
+    });
+
+    describe("strictDeepEqual", function() {
+		it(isGlobalizable, function() {
+			expect(typeof strictDeepEqual).toEqual('function');
+		});
+
+		it(isCurriable, function() {
+			var strictDeepEqualA = strictDeepEqual({ a:1, b:2 });
+			expect(typeof strictDeepEqualA).toBe("function");
+		});
+
+        it("performs strict deep comparison", function() {
+            var obj1 = {
+                foo: [ 1, 2, 3, 4 ],
+                bar: {
+                    b: null,
+                    c: "saw",
+                    d: {
+                        e: "glarb"
+                    }
+                }
+            };
+
+            var obj2 = {
+                bar: {
+                    d: {
+                        e: "glarb"
+                    },
+                    c: "saw",
+                    b: null
+                },
+                foo: [ 1, 2, 3, 4 ]
+            };
+
+            var obj3 = {
+                bar: {
+                    d: {
+                        e: "glarb",
+                        f: "glorp"
+                    },
+                    c: "saw",
+                    b: null
+                },
+                foo: [ 1, 2, 3, 4 ]
+            };
+
+            var obj4 = {
+                foo: [ "1", 2, 3, 4 ],
+                bar: {
+                    b: null,
+                    c: "saw",
+                    d: {
+                        e: "glarb"
+                    }
+                }
+            };
+
+            expect(strictDeepEqual(obj1, obj2)).toBe(true);
+            expect(strictDeepEqual(obj2, obj3)).toBe(false);
+            expect(strictDeepEqual(obj3, obj2)).toBe(false);
+            expect(strictDeepEqual(obj1, obj4)).toBe(false);
+        });
+    });
+
 	////////////////////////////////////////
 	// Number
 	////////////////////////////////////////
