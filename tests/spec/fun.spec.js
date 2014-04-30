@@ -114,15 +114,6 @@ describe("fun.js", function() {
         it("returns Nothing when trying to fmap over Maybe(undefined)", function() {
             expect(fmap(function() {}, Maybe(undefined))).toEqual(Nothing);
         });
-
-        it("returns undefined if the functor does not have an fmap method", function() {
-            expect(fmap(function() {}, Object)).not.toBeDefined();
-        });
-
-        it("calls the functor's fmap method with the supplied function", function() {
-            var addTwo = function(n) { return n + 2; };
-            expect(fromMaybe(undefined, fmap(addTwo, Maybe(4)))).toEqual(6);
-        });
     });
 
     describe("id", function() {
@@ -350,6 +341,21 @@ describe("fun.js", function() {
 
         it("will return the second of two Pair arguments", function() {
             expect(snd(Pair(1, 2), Pair(3, 4))).toEqual(Pair(3, 4));
+        });
+    });
+
+    ////////////////////////////////////////
+    // Functors
+    ////////////////////////////////////////
+
+    describe("fmap", function() {
+        it("returns undefined if the functor does not have an fmap method", function() {
+            expect(fmap(function() {}, Object)).not.toBeDefined();
+        });
+
+        it("calls the functor's fmap method with the supplied function", function() {
+            var addTwo = function(n) { return n + 2; };
+            expect(fromMaybe(undefined, fmap(addTwo, Maybe(4)))).toEqual(6);
         });
     });
 
