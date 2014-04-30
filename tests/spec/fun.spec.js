@@ -106,6 +106,25 @@ describe("fun.js", function() {
         });
     });
 
+    describe("Maybe", function() {
+        it("returns Nothing when trying to fmap over Maybe(null)", function() {
+            expect(fmap(function() {}, Maybe(null))).toEqual(Nothing);
+        });
+
+        it("returns Nothing when trying to fmap over Maybe(undefined)", function() {
+            expect(fmap(function() {}, Maybe(undefined))).toEqual(Nothing);
+        });
+
+        it("returns undefined if the functor does not have an fmap method", function() {
+            expect(fmap(function() {}, Object)).not.toBeDefined();
+        });
+
+        it("calls the functor's fmap method with the supplied function", function() {
+            var addTwo = function(n) { return n + 2; };
+            expect(fromMaybe(undefined, fmap(addTwo, Maybe(4)))).toEqual(6);
+        });
+    });
+
     describe("id", function() {
 		it(isGlobalizable, function() {
 			expect(typeof id).toEqual('function');
@@ -285,6 +304,19 @@ describe("fun.js", function() {
 		});
     });
 
+    describe("composer", function() {
+        it(isGlobalizable, function() {
+            expect(typeof composer).toEqual("function");
+        });
+
+        it(isCurriable, function() {
+            var isNonEmptyString = composer(pluck("length"), gt(0));
+            expect(typeof isNonEmptyString).toEqual("function");
+            expect(isNonEmptyString("")).toEqual(false);
+            expect(isNonEmptyString("foo")).toBe(true);
+        });
+    });
+
     describe("flip", function() {
     	it(isGlobalizable, function() {
     	    expect(typeof flip).toEqual('function');
@@ -389,13 +421,6 @@ describe("fun.js", function() {
 			var result = xs.map(_mapf);
 			expect(toNumbers(xs)).toEqual(result);
 		});
-
-        it("operates on Functor typeclasses as well as Array", function() {
-            expect(map(pluck("name"), Maybe(undefined))).toEqual(Maybe(undefined));
-            expect(map(pluck("name"), Maybe(null))).toEqual(Maybe(null));
-            expect(map(pluck("name"), Maybe(4))).toEqual(Maybe(undefined));
-            expect(map(pluck("name"), Maybe({ name: "brian", sign: "libra" }))).toEqual(Maybe("brian" ));
-        });
     });
 
     describe("filter", function() {
@@ -1087,13 +1112,13 @@ describe("fun.js", function() {
     	});
     });
 
-    describe("typeOf", function() {
-		var isString = typeOf("string");
-        var isFunction = typeOf("function");
-        var isObject = typeOf("object");
+    describe("isa", function() {
+		var isString = isa("string");
+        var isFunction = isa("function");
+        var isObject = isa("object");
 
     	it(isGlobalizable, function() {
-    	    expect(isFunction(typeOf)).toBe(true);
+    	    expect(isFunction(isa)).toBe(true);
     	});
 
     	it(isCurriable, function() {

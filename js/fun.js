@@ -95,11 +95,23 @@ Function.prototype.autoCurry = function(n) {
 };
 
 //+ compose :: f -> g -> h 
-fun.compose = function () {
+fun.compose = function() {
     var fns = Array.prototype.slice.call(arguments), numFns = fns.length;
     return function () {
         var i, returnValue = fns[numFns -1].apply(this, arguments);
         for (i = numFns - 2; i > -1; i--) {
+            returnValue = fns[i](returnValue);
+        }
+        return returnValue;
+    };
+}.autoCurry();
+
+//+ composer :: f -> g -> h
+fun.composer = function() {
+    var fns = Array.prototype.slice.call(arguments), numFns = fns.length;
+    return function () {
+        var i, returnValue = fns[0].apply(this, arguments);
+        for (i = 1; i < numFns; i++) {
             returnValue = fns[i](returnValue);
         }
         return returnValue;
@@ -111,109 +123,6 @@ fun.flip = function(f) {
     return function () {
 	return f(arguments[1], arguments[0]);
     };
-};
-
-// =====
-// Types
-// =====
-
-(function() {
-
-    // ====
-    // Pair
-    // ====
-
-    var Pair = function(x, y) {
-        this.x = x;
-        this.y = y;
-    };
-
-    Pair.prototype.first = function() {
-        return this.x;
-    };
-
-    Pair.prototype.second = function() {
-        return this.y;
-    };
-
-    // Pair data constructor
-    fun.Pair = function(x, y) {
-        return new Pair(x, y);
-    }.autoCurry();
-
-    //+ isPair :: _ -> Boolean
-    fun.isPair = function(x) {
-        return x instanceof Pair;
-    };
-
-    //+ fst :: Pair a b -> a
-    fun.fst = function(a, b) {
-        if (fun.isPair(a) && (typeof b === "undefined")) {
-            return a.first();
-        } else {
-            return a;
-        }
-    };
-
-    //+ snd :: (a -> b -> c) -> a
-    fun.snd = function(a, b) {
-        if (fun.isPair(a) && (typeof b === "undefined")) {
-            return a.second();
-        } else {
-            return b;
-        }
-    };
-
-    // =====
-    // Maybe
-    // =====
-
-    var Maybe = function(val) {
-        this.val = val;
-    };
-
-    Maybe.prototype.map = function(f) {
-        if (! fun.isDefined(this.val)) {
-            return new Maybe(undefined);
-        } else if (fun.isNull(this.val)) {
-            return new Maybe(null);
-        } else {
-            return new Maybe(f(this.val));
-        }
-    };
-
-    fun.Maybe = function(val) {
-        return new Maybe(val);
-    };
-})();
-
-////////////////////////////////////////
-// Logic
-////////////////////////////////////////
-
-//+ and :: _ ... -> Boolean
-fun.and = function () {
-    var args = Array.prototype.slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
-	    return acc && v;
-	}, true, args.concat(Array.prototype.slice.call(arguments)));
-    };
-}.autoCurry();
-
-//+ or :: _ ... -> Boolean
-fun.or = function () {
-    var args = Array.prototype.slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
-	    return acc || v;
-	}, false, args.concat(Array.prototype.slice.call(arguments)));
-    };
-}.autoCurry();
-
-//+ not :: _ -> Boolean
-fun.not = function(x) {
-    return !x;
 };
 
 ////////////////////////////////////////
@@ -276,8 +185,124 @@ var deepEqualWith = function(cmp) {
     return deqw;
 };
 
+//+ deepEqual :: _ -> _ -> Boolean
 fun.deepEqual = deepEqualWith(fun.equal);
+
+//+ strictDeepEqual :: _ -> _ -> Boolean
 fun.strictDeepEqual = deepEqualWith(fun.identical);
+
+// =====
+// Types
+// =====
+
+(function() {
+
+    // ====
+    // Pair
+    // ====
+
+    var Pair = function(x, y) {
+        this.x = x;
+        this.y = y;
+    };
+
+    Pair.prototype.first = function() {
+        return this.x;
+    };
+
+    Pair.prototype.second = function() {
+        return this.y;
+    };
+
+    // Pair data constructor
+    fun.Pair = function(x, y) {
+        return new Pair(x, y);
+    }.autoCurry();
+
+    //+ isPair :: _ -> Boolean
+    fun.isPair = function(x) {
+        return x instanceof Pair;
+    };
+
+    //+ fst :: Pair a b -> a
+    fun.fst = function(a, b) {
+        if (fun.isPair(a) && (typeof b === "undefined")) {
+            return a.first();
+        } else {
+            return a;
+        }
+    };
+
+    //+ snd :: (a -> b -> c) -> a
+;    fun.snd = function(a, b) {
+        if (fun.isPair(a) && (typeof b === "undefined")) {
+            return a.second();
+        } else {
+            return b;
+        }
+    };
+
+    // =====
+    // Maybe
+    // =====
+
+    var Maybe = function(val) {
+        this.val = val;
+    };
+
+    fun.Nothing = new Maybe(null);
+
+    //+ isNothing :: a -> Boolean
+    fun.isNothing = fun.identical(fun.Nothing);
+
+    Maybe.prototype.fmap = function(f) {
+        if (! fun.isDefined(this.val)) {
+            return fun.Nothing;
+        } else if (fun.isNull(this.val)) {
+            return fun.Nothing;
+        } else {
+            return new Maybe(f(this.val));
+        }
+    };
+
+    fun.Maybe = function(val) {
+        return new Maybe(val);
+    };
+
+    //+ Maybe a -> a
+    fun.fromMaybe = function(defaultValue, maybe) {
+        return maybe === fun.Nothing ? defaultValue : maybe.val;
+    }.autoCurry();
+})();
+
+////////////////////////////////////////
+// Logic
+////////////////////////////////////////
+
+//+ and :: _ ... -> Boolean
+fun.and = function () {
+    var args = Array.prototype.slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc && v;
+	}, true, args.concat(Array.prototype.slice.call(arguments)));
+    };
+}.autoCurry();
+
+//+ or :: _ ... -> Boolean
+fun.or = function () {
+    var args = Array.prototype.slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc || v;
+	}, false, args.concat(Array.prototype.slice.call(arguments)));
+    };
+}.autoCurry();
+
+//+ not :: _ -> Boolean
+fun.not = function(x) {
+    return !x;
+};
 
 ////////////////////////////////////////
 // Number
@@ -321,6 +346,15 @@ fun.product = function(ns) {
         return acc * n;
     }, 1);
 };
+
+////////////////////////////////////////
+// Functors
+////////////////////////////////////////
+
+//+ fmap :: (a -> b) -> f a -> f b
+fun.fmap = function(f, functor) {
+    return fun.isa("function", functor.fmap) ? functor.fmap(f) : undefined;
+}.autoCurry();
 
 ////////////////////////////////////////
 // Array
@@ -618,8 +652,8 @@ fun.instanceOf = function(constructor, obj) {
     return obj instanceof constructor;
 }.autoCurry();
 
-//+ typeOf :: Object -> String -> Boolean
-fun.typeOf = function(t, val) {
+//+ isa :: Object -> String -> Boolean
+fun.isa = function(t, val) {
     return typeof t === "string" && typeof val === t;
 }.autoCurry();
 
@@ -664,6 +698,10 @@ fun.reduceOwn = function(f, obj) {
     return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
 }.autoCurry();
 
+//+ objDiff :: _ -> _ -> Object
+fun.objDiff = function(a, b) {
+};
+
 ////////////////////////////////////////
 // String
 ////////////////////////////////////////
@@ -672,6 +710,7 @@ fun.reduceOwn = function(f, obj) {
 fun.strcat = function(s, t) {
     return t.concat(s);
 }.autoCurry();
+
 
 //+ contains :: String -> String -> Boolean
 // fun.contains = function(s, t) {
@@ -767,7 +806,7 @@ fun.import = function(options) {
 
     /*
      * A function will not be imported if:
-     * (1) It is in 'without';
+     * (1) It is in 'without' or
      * (2) It is not in 'select' and 'select' is nonempty.
      * Note that all functions are imported if both 'select' and 'without' are empty.
      */
