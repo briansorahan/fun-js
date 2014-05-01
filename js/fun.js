@@ -13,6 +13,16 @@ fun.id = function(x) {
     return x;
 };
 
+fun.arg = function(n) {
+    return function() {
+        return arguments[n];
+    };
+};
+
+function returnArgument(n) {
+    return arguments[n];
+}
+
 ////////////////////////////////////////
 // type checking
 ////////////////////////////////////////
@@ -32,6 +42,11 @@ fun.isArray = function(obj) {
     return fun.isDefined(obj) && (! fun.isNull(obj))
 	&& (typeof obj === 'object')
 	&& (obj.constructor == Array);
+};
+
+//+ isString :: _ -> Boolean
+fun.isString = function(obj) {
+    return typeof obj === "string";
 };
 
 //+ isObject :: _ -> Boolean
@@ -54,6 +69,11 @@ fun.isNumber = function(n) {
     return (typeof n === 'number')
 	    && !isNaN(parseFloat(n))
 	    && isFinite(n);
+};
+
+//+ isInteger :: _ -> Boolean
+fun.isInteger = function(n) {
+    return fun.isNumber(n) && Math.floor(n) === n;
 };
 
 ////////////////////////////////////////
@@ -100,7 +120,11 @@ fun.compose = function() {
     return function () {
         var i, returnValue = fns[numFns -1].apply(this, arguments);
         for (i = numFns - 2; i > -1; i--) {
-            returnValue = fns[i](returnValue);
+            if (fun.isArray(returnValue)) {
+                returnValue = fns[i].apply(this, returnValue);
+            } else {
+                returnValue = fns[i].call(this, returnValue);
+            }
         }
         return returnValue;
     };
@@ -191,6 +215,199 @@ fun.deepEqual = deepEqualWith(fun.equal);
 //+ strictDeepEqual :: _ -> _ -> Boolean
 fun.strictDeepEqual = deepEqualWith(fun.identical);
 
+////////////////////////////////////////
+// Logic
+////////////////////////////////////////
+
+//+ and :: _ ... -> Boolean
+fun.and = function () {
+    var args = Array.prototype.slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc && v;
+	}, true, args.concat(Array.prototype.slice.call(arguments)));
+    };
+}.autoCurry();
+
+//+ or :: _ ... -> Boolean
+fun.or = function () {
+    var args = Array.prototype.slice.call(arguments);
+    return function () {
+	return reduce(function(acc, v) {
+	    return acc || v;
+	}, false, args.concat(Array.prototype.slice.call(arguments)));
+    };
+}.autoCurry();
+
+//+ not :: _ -> Boolean
+fun.not = function(x) {
+    return !x;
+};
+
+////////////////////////////////////////
+// Object
+////////////////////////////////////////
+
+//+ pluck :: String -> Object -> _
+fun.pluck = function (name, obj) {
+    return obj[name];
+}.autoCurry();
+
+//+ dot :: Object -> String -> _
+fun.dot = function(obj, name) {
+    return obj[name];
+}.autoCurry();
+
+//+ has :: String -> Object -> Boolean
+fun.has = function(name, obj) {
+    return obj.hasOwnProperty(name);
+}.autoCurry();
+
+//+ instanceOf :: Object -> Object -> Boolean
+fun.instanceOf = function(constructor, obj) {
+    return obj instanceof constructor;
+}.autoCurry();
+
+//+ isa :: Iface -> Object -> Boolean
+fun.isa = function(type, obj) {
+    return type.check(obj);
+}.autoCurry();
+
+//+ isnota :: String -> Object -> Boolean
+fun.isnota = fun.compose(fun.not, fun.isa);
+
+//+ objMap :: (String -> a -> b) -> Object -> [b]
+//! map over key/value pairs in an object
+fun.objMap = function(f, obj) {
+	var result = [], index = 0;
+
+    if (fun.isNonNullObject(obj)) {
+	    for (var property in obj) {
+		    if (obj.hasOwnProperty(property)) {
+			    result[index++] = f(property, obj[property]);
+		    }
+	    }
+	    return result;
+    } else {
+        return undefined;
+    }
+}.autoCurry();
+
+fun.keys = fun.objMap(fun.arg(0));
+fun.vals = fun.objMap(fun.arg(1));
+
+//+ merge :: Object -> Object -> Object
+// Note: Properties of the second argument take precedence
+//       over identically-named properties of the first
+//       argument.
+fun.merge = function(obj1, obj2) {
+	var result = {};
+    [obj1, obj2].forEach(function(obj) {
+        for (var p in obj) {
+            if (fun.has(p, obj)) {
+                result[p] = obj[p];
+            }
+        }
+    });
+    return result;
+};
+
+//+ reduceOwn :: Function -> Object -> Object
+fun.reduceOwn = function(f, obj) {
+    var wrapper = function(result, k) {
+        f(result, k, obj[k]);
+        return result;
+    };
+
+    if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
+        return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
+    } else {
+        return undefined;
+    }
+}.autoCurry();
+
+//+ filterObject :: (Object -> String -> _ -> Boolean) -> Object -> Object
+fun.filterObject = function(f, obj) {
+    var pick = function(result, key, val) {
+        if (f(result, key, val)) {
+            result[key] = val;
+        }
+    };
+    return fun.reduceOwn(pick, obj);
+}.autoCurry();
+
+//+ functions :: {Object|Array} -> [ {Object|Array} ]
+//! Return an array of the function names of an object.
+//  Returns undefined if the object is not an Object.
+fun.functions = function(obj) {
+    if (fun.isArray(obj)) {
+        return obj.filter(fun.isFunction);
+    } else if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
+        // notice how Function can act like Object
+        var f = function(acc, key, val) {
+            return fun.isFunction(val);
+        };
+        return fun.filterObject(f, obj);
+    } else {
+        return undefined;
+    }
+};
+
+////////////////////////////////////////
+// Number
+////////////////////////////////////////
+
+//+ incr :: Int -> Int
+fun.incr = function(x) {
+    return fun.isNumber(x) ? x + 1 : undefined;
+};
+
+//+ decr :: Int -> Int
+fun.decr = function(x) {
+    return fun.isNumber(x) ? x - 1 : undefined;
+};
+
+//+ min :: [Number] -> Number
+fun.min = function(ns) {
+    return fun.isArray(ns) ? Math.min.apply(null, ns) : undefined;
+};
+
+//+ max :: [Number] -> Number
+fun.max = function(ns) {
+    return fun.isArray(ns) ? Math.max.apply(null, ns) : undefined;
+};
+
+fun.add = function(x, y) {
+    return x + y;
+}.autoCurry();
+
+fun.multiply = function(x, y) {
+    return x * y;
+}.autoCurry();
+
+fun.divide = function(dividend, divisor) {
+    return dividend / divisor;
+}.autoCurry();
+
+//+ pow :: Number ... -> Number
+fun.pow = function(exponent, base) {
+    return Math.pow(base, exponent);
+}.autoCurry();
+
+//+ sum :: [Number] -> Number
+fun.sum = function(ns) {
+    return ns.reduce(function(acc, n) {
+        return acc + n;
+    }, 0);
+};
+
+//+ product :: [Number] -> Number
+fun.product = function(ns) {
+    return ns.reduce(function(acc, n) {
+        return acc * n;
+    }, 1);
+};
+
 // =====
 // Types
 // =====
@@ -246,114 +463,288 @@ fun.strictDeepEqual = deepEqualWith(fun.identical);
     // Maybe
     // =====
 
-    var Maybe = function(val) {
-        this.val = val;
-    };
-
-    fun.Nothing = new Maybe(null);
-
-    //+ isNothing :: a -> Boolean
-    fun.isNothing = fun.identical(fun.Nothing);
-
-    Maybe.prototype.fmap = function(f) {
-        if (! fun.isDefined(this.val)) {
+    fun.Nothing = {
+        fmap: function(f) {
             return fun.Nothing;
-        } else if (fun.isNull(this.val)) {
-            return fun.Nothing;
-        } else {
-            return new Maybe(f(this.val));
         }
     };
 
     fun.Maybe = function(val) {
-        return new Maybe(val);
+        if (! fun.isDefined(val)) {
+            return fun.Nothing;
+        } else if (fun.isNull(val)) {
+            return fun.Nothing;
+        } else {
+            return {
+                _val: val,
+
+                fmap: function(f) {
+                    return fun.Maybe(f(val));
+                }
+            };
+        }
     };
 
     //+ Maybe a -> a
     fun.fromMaybe = function(defaultValue, maybe) {
-        return maybe === fun.Nothing ? defaultValue : maybe.val;
+        if (maybe === fun.Nothing) {
+            return defaultValue;
+        } else {
+            return maybe._val;
+        }
     }.autoCurry();
+
+    // ======
+    // Either
+    // ======
+
+    //+ data Either a b = Left a | Right b
+    var Either = {
+        Undefined: {}
+    };
+
+    // Data constructors
+    fun.Left  = function(val) {
+        var self = {
+            _isLeft: true,
+            _isRight: false,
+            _val: val,
+
+            fmap: function(f) {
+                return self;
+            }
+        };
+
+        return self;
+    };
+
+    fun.Right = function(val) {
+        return {
+            _isLeft: false,
+            _isRight: true,
+            _val: val,
+
+            fmap: function(f) {
+                return fun.Right(f(val));
+            }
+        };
+    };
+
+    //+ either :: (a -> c) -> (b -> c) -> Either a b -> c
+    fun.either = function(f, g, obj) {
+        if ((! fun.isFunction(f)) || (! fun.isFunction(g))) {
+            return Either.Undefined;
+        } else {
+            if (obj._isLeft) {
+                return f(obj._val);
+            } else if (obj._isRight) {
+                return g(obj._val);
+            } else {
+                return Either.Undefined;
+            }
+        }
+    }.autoCurry();
+
+    fun.lefts = function(array) {
+        if (! fun.isArray(array)) {
+            return Either.Undefined;
+        } else {
+            return array.reduce(function(acc, el) {
+                return el._isLeft ? acc.concat(el._val) : acc;
+            }, []);
+        }
+    };
+
+    fun.rights = function(array) {
+        if (! fun.isArray(array)) {
+            return Either.Undefined;
+        } else {
+            return array.reduce(function(acc, el) {
+                return el._isRight ? acc.concat(el._val) : acc;
+            }, []);
+        }
+    };
+
+    // ==============
+    // Function Types
+    // ==============
+
+    /*
+     * If you're wondering why I only go up to functions with
+     * 10 parameters here, please see Perlisisms #11 at
+     * http://www.cs.yale.edu/homes/perlis-alan/quotes.html
+     * 
+     * These are used in Iface.parse below.
+     */
+    var FunctionWithArity = [
+        function()                    {},
+        function(a)                   {},
+        function(a,b)                 {},
+        function(a,b,c)               {},
+        function(a,b,c,d)             {},
+        function(a,b,c,d,e)           {},
+        function(a,b,c,d,e,f)         {},
+        function(a,b,c,d,e,f,g)       {},
+        function(a,b,c,d,e,f,g,h)     {},
+        function(a,b,c,d,e,f,g,h,i)   {},
+        function(a,b,c,d,e,f,g,h,i,j) {}
+    ];
+
+    // =====
+    // Iface
+    // =====
+
+    // string that separates function name from arity in
+    // Iface.toString and Iface.parse
+    var _arsep   = ",";
+    // string that separates function name/arity strings in
+    // Iface.toString and Iface.parse
+    var _fsep    = "_&_";
+
+    // private Iface constructor
+    function Iface(desc) {
+        if (! fun.isNonNullObject(desc)) {
+            throw new Error("Iface constructor requires an object");
+        }
+        // cache an object with just the functions of desc
+        if (! fun.isFunction(fun.functions)) {
+            throw new Error("fun.functions has not been defined yet");
+        }
+        this._methods = fun.functions(desc);
+    }
+
+    /*
+     * Convert an Iface to a string.
+     * 
+     * Example:
+     *     var Person = Iface({
+     *         greet: function(person) {},
+     *         introduce: function(p1, p2) {}
+     *     });
+     * 
+     *     Person.toString();
+     *     // => "greet,1_&_introduce,2"
+     */
+    Iface.prototype.toString = function() {
+        return this._methods.map(function(m) {
+            return m + _arsep + arity(m);
+        }).join(_fsep);
+    };
+
+    /*
+     * Class method to parse an Iface from a string.
+     * Returns Iface.ParseError if it cannot parse the string.
+     * 
+     * Example:
+     *     var PersonFromString = Iface.parse("greet,1_&_introduce,2");
+     *     // equivalent to
+     *     
+     */
+    Iface.parse = (function() {
+        var cache = {};
+
+        return function(s) {
+            if (typeof s !== "string") {
+                return new Error("Iface.parse only accepts strings");
+            }
+            
+            if (! cache.hasOwnProperty(s)) {
+                var len = s.length;
+
+                if (len === 0) {
+                    // if it is the empty string
+                    cache[s] = new Iface({});
+                } else {
+                    var fs = s.split(_fsep);
+
+                    // parse the string and cache the result
+                    cache[s] = fs.reduce(function(acc, str) {
+                        var arsepIndex = str.indexOf(_arsep);
+
+                        if (arsepIndex > 0 && arsepIndex < len - 1) {
+                            // "<name>,<arity>"
+                            var f_parts   = str.split(",");
+                            var f_name    = f_parts[0];
+                            var f_arity   = parseInt(f_parts[1], 10);
+
+                            if (isNaN(f_arity)) {
+                                throw new Error("Could not parse function arity from " + str);
+                            } else if (f_arity > 10) {
+                                throw new Error("Iface.parse does not support functions with arity > 10");
+                            }
+
+                            acc[f_name] = FunctionWithArity[f_arity];
+                        } else if (arsepIndex === 0) {
+                            // ",<arity>"
+                            throw new Error("Iface.parse does not support empty function names");
+                        } else {
+                            // "<name>," or "<name>"
+                            acc[str] = FunctionWithArity[0];
+                        }
+                        
+                        return acc;
+                    }, {});
+                }
+            }
+
+            return cache[s];
+        };
+    })();
+
+    function arity(f) { return f.length; }
+
+    /**
+     * Duck-type an object to see if it implements an interface.
+     * @param {Object} obj - The object under inspection.
+     * @return {Boolean} true if the object implements this interface, false otherwise
+     */
+    Iface.prototype.check = function(obj) {
+        var self = this,
+            myFuncs = self._methods,
+            myFuncNames = fun.keys(self._methods),
+            objFuncs = fun.functions(obj),
+            objFuncNames = fun.keys(objFuncs);
+        
+        if(! fun.isArray(myFuncNames)) {
+            return false;
+        } else if (! fun.isArray(objFuncNames)) {
+            return false;
+        } else if (myFuncNames.length !== objFuncNames.length) {
+            return false;
+        } else {
+            return myFuncNames.reduce(function(acc, m) {
+                return acc &&
+                    fun.isFunction(objFuncs[m]) &&
+                    fun.identical(arity(myFuncs[m]), arity(objFuncs[m]));
+            }, true);
+        }
+    };
+
+    /**
+     * Create a new Iface.
+     * @param {Object} desc - An object with functions that specify the interface.
+     * @return {Iface} A new Iface instance.
+     */
+    fun.Iface = function(desc) {
+        if (! fun.isNonNullObject(desc)) {
+            throw new Error("Iface constructor expects an object");
+        }
+        return new Iface(desc);
+    };
+
+    // =======
+    // Functor
+    // =======
+
+    fun.Functor = new Iface({
+        fmap: function(f) {}
+    });
+
 })();
-
-////////////////////////////////////////
-// Logic
-////////////////////////////////////////
-
-//+ and :: _ ... -> Boolean
-fun.and = function () {
-    var args = Array.prototype.slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
-	    return acc && v;
-	}, true, args.concat(Array.prototype.slice.call(arguments)));
-    };
-}.autoCurry();
-
-//+ or :: _ ... -> Boolean
-fun.or = function () {
-    var args = Array.prototype.slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
-	    return acc || v;
-	}, false, args.concat(Array.prototype.slice.call(arguments)));
-    };
-}.autoCurry();
-
-//+ not :: _ -> Boolean
-fun.not = function(x) {
-    return !x;
-};
-
-////////////////////////////////////////
-// Number
-////////////////////////////////////////
-
-//+ incr :: Int -> Int
-fun.incr = function(x) {
-    return fun.isNumber(x) ? x + 1 : undefined;
-};
-
-//+ decr :: Int -> Int
-fun.decr = function(x) {
-    return fun.isNumber(x) ? x - 1 : undefined;
-};
-
-//+ min :: [Number] -> Number
-fun.min = function(ns) {
-    return fun.isArray(ns) ? Math.min.apply(null, ns) : undefined;
-};
-
-//+ max :: [Number] -> Number
-fun.max = function(ns) {
-    return fun.isArray(ns) ? Math.max.apply(null, ns) : undefined;
-};
-
-//+ pow :: Number ... -> Number
-fun.pow = function(exponent, base) {
-    return Math.pow(base, exponent);
-}.autoCurry();
-
-//+ sum :: [Number] -> Number
-fun.sum = function(ns) {
-    return ns.reduce(function(acc, n) {
-        return acc + n;
-    }, 0);
-};
-
-//+ product :: [Number] -> Number
-fun.product = function(ns) {
-    return ns.reduce(function(acc, n) {
-        return acc * n;
-    }, 1);
-};
-
-////////////////////////////////////////
-// Functors
-////////////////////////////////////////
 
 //+ fmap :: (a -> b) -> f a -> f b
 fun.fmap = function(f, functor) {
-    return fun.isa("function", functor.fmap) ? functor.fmap(f) : undefined;
+    return fun.isa(fun.Functor, functor) ? functor.fmap(f) : undefined;
 }.autoCurry();
 
 ////////////////////////////////////////
@@ -633,74 +1024,10 @@ fun.span = function(p, xs) {
     }
 }.autoCurry();
 
-////////////////////////////////////////
-// Object
-////////////////////////////////////////
-
-//+ pluck :: String -> Object -> _
-fun.pluck = function (name, obj) {
-    return obj[name];
-}.autoCurry();
-
-//+ has :: String -> Object -> Boolean
-fun.has = function(name, obj) {
-    return obj.hasOwnProperty(name);
-}.autoCurry();
-
-//+ instanceOf :: Object -> Object -> Boolean
-fun.instanceOf = function(constructor, obj) {
-    return obj instanceof constructor;
-}.autoCurry();
-
-//+ isa :: Object -> String -> Boolean
-fun.isa = function(t, val) {
-    return typeof t === "string" && typeof val === t;
-}.autoCurry();
-
-//+ objMap :: (String -> a -> b) -> Object -> [b]
-// map over key/value pairs in an object
-fun.objMap = function(f, obj) {
-	var result = [], index = 0;
-	for (var property in obj) {
-		if (obj.hasOwnProperty(property)) {
-			result[index++] = f(property, obj[property]);
-		}
-	}
-	return result;
-}.autoCurry();
-
-fun.keys = fun.objMap(fun.fst);
-fun.vals = fun.objMap(fun.snd);
-
-//+ merge :: Object -> Object -> Object
-// Note: Properties of the second argument take precedence
-//       over identically-named properties of the first
-//       argument.
-fun.merge = function(obj1, obj2) {
-	var result = {};
-    [obj1, obj2].forEach(function(obj) {
-        for (var p in obj) {
-            if (fun.has(p, obj)) {
-                result[p] = obj[p];
-            }
-        }
-    });
-    return result;
-};
-
-//+ reduceOwn :: Function -> Object -> Object
-fun.reduceOwn = function(f, obj) {
-    var wrapper = function(result, k) {
-        f(result, k, obj[k]);
-        return result;
-    };
-
-    return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
-}.autoCurry();
-
+// TODO
 //+ objDiff :: _ -> _ -> Object
-fun.objDiff = function(a, b) {
-};
+// fun.objDiff = function(a, b) {
+// };
 
 ////////////////////////////////////////
 // String
