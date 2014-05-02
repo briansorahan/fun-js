@@ -136,11 +136,7 @@ fun.compose = function() {
     return function () {
         var i, returnValue = fns[numFns -1].apply(this, arguments);
         for (i = numFns - 2; i > -1; i--) {
-            if (fun.isArray(returnValue)) {
-                returnValue = fns[i].apply(this, returnValue);
-            } else {
-                returnValue = fns[i].call(this, returnValue);
-            }
+            returnValue = fns[i](returnValue);
         }
         return returnValue;
     };
