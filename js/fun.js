@@ -670,10 +670,8 @@ fun.product = function(ns) {
                     Of: Of(result),
                     Otherwise: function(g) {
                         if (result !== Case.Fail) {
-                            console.log("result = " + result);
                             return result;
                         } else {
-                            console.log("calling otherwise function");
                             return fun.valueOf(g);
                         }
                     }

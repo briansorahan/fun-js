@@ -235,10 +235,8 @@ describe("fun.js", function() {
                     var f = function(val) {
                         return Case(val)
                             .Of(String, function() {
-                                console.log("string matched");
                                 expect(typeof val === "string").toBe(true);
                             }).Of(Array, function() {
-                                console.log("array matched");
                                 expect(isArray(val)).toBe(true);
                             }).Otherwise(function() {
                                 expect(false).toBe(true);
