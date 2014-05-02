@@ -85,6 +85,11 @@ describe("fun.js", function() {
 		return y - x;
     }.autoCurry();
 
+    var Person = Iface({
+        greets: function(guest) {},
+        stops: function(evil) {}
+    });
+
     describe("Types", function() {
         describe("Pair", function() {
             var p = Pair(1, 2);
@@ -133,11 +138,6 @@ describe("fun.js", function() {
         });
 
         describe("Iface", function() {
-            var Person = Iface({
-                greets: function(guest) {},
-                stops: function(evil) {}
-            });
-
             var isaPerson = isa(Person);
 
             var Animal = Iface.parse("breathe/1 eat/1");
@@ -223,7 +223,31 @@ describe("fun.js", function() {
             });
 
             describe("Of", function() {
-                xit("is chainable", function() {
+                var f = function(val) {
+                    return Case(val)
+                        .Of("foo", function() {
+                            expect(val).toEqual("foo");
+                            return "foo_matched";
+                        }).Of(String, function() {
+                            expect(typeof val === "string").toBe(true);
+                            return "string_matched";
+                        }).Of([1,2,3], function() {
+                            expect(val).toEqual([1,2,3]);
+                            console.log("123_matched");
+                            return "123_matched";
+                        }).Of(Array, function() {
+                            expect(isArray(val)).toBe(true);
+                            console.log("array_matched");
+                            return "array_matched";
+                        }).Of(Person, function() {
+                            expect(isa(Person)(val)).toBe(true);
+                            return "person_matched";
+                        }).Otherwise(function() {
+                            return "otherwise";
+                        });
+                };
+
+                it("is chainable", function() {
                     var c = Case("foo")
                              .Of("bar", function() {})
                              .Of("glorp", function() {});
@@ -232,24 +256,28 @@ describe("fun.js", function() {
                 });
 
                 describe("tries to DWIM", function() {
-                    var f = function(val) {
-                        return Case(val)
-                            .Of(String, function() {
-                                expect(typeof val === "string").toBe(true);
-                            }).Of(Array, function() {
-                                expect(isArray(val)).toBe(true);
-                            }).Otherwise(function() {
-                                expect(false).toBe(true);
-                            });
-                    };
-
                     it("detects Array as the first param", function() {
-                        f([1,2,3]);
+                        expect(f([1,2,3])).toEqual("123_matched");
+                        expect(f([1,2,3,4])).toEqual("array_matched");
                     });
 
                     it("detects String as the first param", function() {
-                        f("foo");
+                        expect(f("foo")).toEqual("foo_matched");
+                        expect(f("bar")).toEqual("string_matched");
                     });
+
+                    it("matches Iface using isa", function() {
+                        var p = {
+                            greets: function(guest) {},
+                            stops:  function(evil)  {}
+                        };
+
+                        expect(f(p)).toEqual("person_matched");
+                    });
+                });
+
+                it("provides an Otherwise method as a catch-all", function() {
+                    expect(f(null)).toEqual("otherwise");
                 });
             });
         });

@@ -623,17 +623,14 @@ fun.product = function(ns) {
     //+     bind :: m a -> (a -> m b) -> m b
     fun.Monad = Iface.parse("ret/1 bind/2");
 
-    //
-    // Pattern Matching 
-    // 
-    // We would probably want different behavior for different types.
-    // For Iface we would want to match with isa.
-    // For String we would want to match with Regexp or identical.
-    // For Number we would want to use identical.
-    // For Array we would want to use pair-wise identical.
-    // For Object we would want to use deepEqual.
-    // For Infinity, null, undefined we would use identical.
-    //
+    /*
+     * Pattern matching according to the following rules:
+     * For Iface match with isa.
+     * For String match type-wise or with Regexp or identical.
+     * For Number use identical.
+     * For Array and Object use instanceof, then strictDeepEqual.
+     * For Infinity, null, undefined use identical.
+     */
     function CaseMatch(pattern, val) {
         if (pattern instanceof Iface && fun.isa(pattern, val)) {
             return true;
@@ -644,13 +641,27 @@ fun.product = function(ns) {
                 return fun.isRegexp(pattern) ? pattern.test(val) : pattern === val;
         } else if (fun.isNumber(val)) {
             return pattern === val;
-        } else if (fun.isArray(val) || fun.isNonNullObject(val)) {
-            return fun.strictDeepEqual(pattern, val) || val instanceof pattern;
-        } else if (fun.isInifinity(val)) {
+        } else if (fun.isArray(val)) {
+            if (pattern === Array) {
+                return true;
+            } else if (fun.isArray(pattern) && fun.strictDeepEqual(pattern, val)) {
+                return true;
+            } else if (fun.isNonNullObject(val)) {
+                if (pattern === Object) {
+                    return true;
+                } else if (fun.isNonNullObject(pattern) && fun.strictDeepEqual(pattern, val)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else if (fun.isInfinity(val)) {
             return fun.isInfinity(pattern);
         } else {
             return (typeof val === pattern)
-                || (val instanceof pattern)
+                || ((typeof pattern === "function") && (val instanceof pattern))
                 || val === pattern
                 || val == pattern;
         }
@@ -663,7 +674,7 @@ fun.product = function(ns) {
     fun.Case = function(val) {
         function Of(result) {
             return function(pattern, f) {
-                if (CaseMatch(pattern, val)) {
+                if (CaseMatch(pattern, val) && result === Case.Fail) {
                     result = fun.valueOf(f);
                 }
                 return {
