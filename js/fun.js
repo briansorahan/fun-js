@@ -13,15 +13,15 @@ fun.id = function(x) {
     return x;
 };
 
+fun.echo = function(x) {
+    return function() { return x; };
+};
+
 fun.arg = function(n) {
     return function() {
         return arguments[n];
     };
 };
-
-function returnArgument(n) {
-    return arguments[n];
-}
 
 ////////////////////////////////////////
 // type checking
@@ -74,6 +74,22 @@ fun.isNumber = function(n) {
 //+ isInteger :: _ -> Boolean
 fun.isInteger = function(n) {
     return fun.isNumber(n) && Math.floor(n) === n;
+};
+
+fun.If = function(p) {
+    return {
+        Then: function(f) {
+            return {
+                Else: function(g) {
+                    if (p) {
+                        return fun.isFunction(f) ? f() : f;
+                    } else {
+                        return fun.isFunction(g) ? g() : g;
+                    }
+                }
+            };
+        }
+    };
 };
 
 ////////////////////////////////////////
@@ -281,7 +297,7 @@ fun.isnota = fun.compose(fun.not, fun.isa);
 fun.objMap = function(f, obj) {
 	var result = [], index = 0;
 
-    if (fun.isNonNullObject(obj)) {
+    if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
 	    for (var property in obj) {
 		    if (obj.hasOwnProperty(property)) {
 			    result[index++] = f(property, obj[property]);
@@ -343,7 +359,6 @@ fun.functions = function(obj) {
     if (fun.isArray(obj)) {
         return obj.filter(fun.isFunction);
     } else if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
-        // notice how Function can act like Object
         var f = function(acc, key, val) {
             return fun.isFunction(val);
         };
@@ -408,16 +423,193 @@ fun.product = function(ns) {
     }, 1);
 };
 
-// =====
 // Types
-// =====
-
 (function() {
+    /*
+     * If you're wondering why I only go up to functions with
+     * 10 parameters here, please see Perlisisms #11 at
+     * http://www.cs.yale.edu/homes/perlis-alan/quotes.html
+     * 
+     * These are used in Iface.parse below.
+     */
+    var FunctionWithArity = [
+        function()                    {},
+        function(a)                   {},
+        function(a,b)                 {},
+        function(a,b,c)               {},
+        function(a,b,c,d)             {},
+        function(a,b,c,d,e)           {},
+        function(a,b,c,d,e,f)         {},
+        function(a,b,c,d,e,f,g)       {},
+        function(a,b,c,d,e,f,g,h)     {},
+        function(a,b,c,d,e,f,g,h,i)   {},
+        function(a,b,c,d,e,f,g,h,i,j) {}
+    ];
 
-    // ====
+    // string that separates function name from arity in
+    // Iface.toString and Iface.parse
+    var aritySeparator   = "/";
+    // string that separates function name/arity strings in
+    // Iface.toString and Iface.parse
+    var functionSeparator    = " ";
+
+    // private Iface constructor
+    function Iface(desc) {
+        if (! fun.isNonNullObject(desc)) {
+            throw new Error("Iface constructor requires an object");
+        }
+        if (! fun.isFunction(fun.functions)) {
+            throw new Error("fun.functions has not been defined yet");
+        }
+        // cache an object with just the functions of desc
+        this._methods = fun.functions(desc);
+    }
+
+    /*
+     * Convert an Iface to a string.
+     * 
+     * Example:
+     *     var Person = Iface({
+     *         greet: function(person) {},
+     *         introduce: function(p1, p2) {}
+     *     });
+     * 
+     *     Person.toString();
+     *     // => "greet,1_&_introduce,2"
+     */
+    Iface.prototype.toString = function() {
+        return fun.objMap(function(k, v) {
+            return k + aritySeparator + v.length;
+        }, this._methods).join(functionSeparator);
+    };
+
+    /*
+     * Class method to parse an Iface from a string.
+     * Returns Iface.ParseError if it cannot parse the string.
+     * 
+     * Example:
+     *     var PersonFromString = Iface.parse("greet,1_&_introduce,2");
+     *     // equivalent to
+     *     
+     */
+    Iface.parse = (function() {
+        var cache = {};
+
+        return function(s) {
+            if (typeof s !== "string") {
+                return new Error("Iface.parse only accepts strings");
+            }
+            
+            if (! cache.hasOwnProperty(s)) {
+                var len = s.length;
+
+                if (len === 0) {
+                    // if it is the empty string
+                    cache[s] = new Iface({});
+                } else {
+                    var fs = s.split(functionSeparator);
+
+                    // parse the string and cache the result
+                    var desc = fs.reduce(function(acc, str) {
+                        var arsepIndex = str.indexOf(aritySeparator);
+
+                        if (arsepIndex > 0 && arsepIndex < len - 1) {
+                            // "<name>,<arity>"
+                            var f_parts   = str.split(aritySeparator);
+                            var f_name    = f_parts[0];
+                            var f_arity   = parseInt(f_parts[1], 10);
+
+                            if (isNaN(f_arity)) {
+                                throw new Error("Could not parse function arity from " + str);
+                            } else if (f_arity > 10) {
+                                throw new Error("Iface.parse does not support functions with arity > 10");
+                            }
+
+                            // console.log("parsed function " + f_name + " with arity " + f_arity);
+                            acc[f_name] = FunctionWithArity[f_arity];
+                        } else if (arsepIndex === 0) {
+                            // ",<arity>"
+                            throw new Error("Iface.parse does not support empty function names");
+                        } else {
+                            // "<name>," or "<name>"
+                            acc[str] = FunctionWithArity[0];
+                        }
+                        
+                        return acc;
+                    }, {});
+
+                    cache[s] = new Iface(desc);
+                }
+            }
+
+            return cache[s];
+        };
+    })();
+
+    function arity(f) { return f.length; }
+
+    /**
+     * Duck-type an object to see if it implements an interface.
+     * @param {Object} obj - The object under inspection.
+     * @return {Boolean} true if the object implements this interface, false otherwise
+     */
+    Iface.prototype.check = function(obj) {
+        var self = this,
+            myFuncs = self._methods,
+            myFuncNames = fun.keys(self._methods),
+            objFuncs = fun.functions(obj),
+            objFuncNames = fun.keys(objFuncs);
+        
+        if(! fun.isArray(myFuncNames)) {
+            return false;
+        } else if (! fun.isArray(objFuncNames)) {
+            return false;
+        } else {
+            return myFuncNames.reduce(function(acc, m) {
+                return acc &&
+                    fun.isFunction(objFuncs[m]) &&
+                    fun.identical(arity(myFuncs[m]), arity(objFuncs[m]));
+            }, true);
+        }
+    };
+
+    /**
+     * Create a new implementation of an Iface.
+     * @param {Object} obj - The object that implements the Iface.
+     * @return {Object} The object that was provided, if it passes the check method.
+     * @throw {TypeError} If the provided object does not implement the interface.
+     */
+    Iface.prototype.imp = function(obj) {
+        if (this.check(obj)) {
+            return obj;
+        } else {
+            throw new TypeError("Incomplete interface implementation.");
+        }
+    };
+
+    /**
+     * Create a new Iface.
+     * @param {Object} desc - An object with functions that specify the interface.
+     * @return {Iface} A new Iface instance.
+     */
+    fun.Iface = function(desc) {
+        if (! fun.isNonNullObject(desc)) {
+            throw new Error("Iface constructor expects an object");
+        }
+        return new Iface(desc);
+    };
+
+    fun.Iface.parse = Iface.parse;
+
+    //+ class Functor f where
+    //+     fmap :: (a -> b) -> f a -> f b    
+    fun.Functor = Iface.parse("fmap/1");
+    //+ class Monad m where
+    //+     ret  :: a -> m a
+    //+     bind :: m a -> (a -> m b) -> m b
+    fun.Monad = Iface.parse("ret bind/2");
+
     // Pair
-    // ====
-
     var Pair = function(x, y) {
         this.x = x;
         this.y = y;
@@ -459,60 +651,56 @@ fun.product = function(ns) {
         }
     };
 
-    // =====
-    // Maybe
-    // =====
+    // data Maybe a = Nothing | Just a
+    fun.Maybe = Iface.parse("isNothing fmap/1 ret bind/2");
 
-    fun.Nothing = {
-        fmap: function(f) {
-            return fun.Nothing;
-        }
+    fun.Nothing = function(val) {
+        return fun.Maybe.imp({
+            isNothing: function()     { return true; },
+            fmap:      function(f)    { return fun.Nothing; },
+            ret:       function()     { return fun.Nothing; },
+            bind:      function(a, f) { return fun.Nothing; }
+        });
     };
 
-    fun.Maybe = function(val) {
+    // We map the javascript values undefined and null
+    // to Nothing.
+    fun.Just = function(val) {
         if (! fun.isDefined(val)) {
-            return fun.Nothing;
+            return fun.Nothing(val);
         } else if (fun.isNull(val)) {
-            return fun.Nothing;
+            return fun.Nothing(val);
         } else {
-            return {
-                _val: val,
-
-                fmap: function(f) {
-                    return fun.Maybe(f(val));
-                }
-            };
+            return fun.Maybe.imp({
+                isNothing: function()     { return false; },
+                fmap:      function(f)    { return fun.Just(f(val)); },
+                ret:       function()     { return val; },
+                bind:      function(a, f) { return fun.Maybe.imp(f(a)); }
+            });
         }
     };
 
-    //+ Maybe a -> a
-    fun.fromMaybe = function(defaultValue, maybe) {
-        if (maybe === fun.Nothing) {
-            return defaultValue;
-        } else {
-            return maybe._val;
-        }
+    //+ fromMaybe :: a -> Maybe a -> a
+    //! Takes a default value and a value wrapped in Maybe.
+    //  If the Maybe is Nothing it returns the default value.
+    //  If the Maybe is Just a, return a.
+    fun.fromMaybe = function(d, maybe) {
+        return fun.If(maybe.isNothing()).Then(d).Else(maybe.ret());
     }.autoCurry();
 
-    // ======
-    // Either
-    // ======
-
     //+ data Either a b = Left a | Right b
+
     var Either = {
+        Iface: Iface.parse("val isLeft fmap/1"),
         Undefined: {}
     };
 
     // Data constructors
     fun.Left  = function(val) {
         var self = {
-            _isLeft: true,
-            _isRight: false,
-            _val: val,
-
-            fmap: function(f) {
-                return self;
-            }
+            val:    function()  { return val; },
+            isLeft: function()  { return true; },
+            fmap:   function(f) { return self; }
         };
 
         return self;
@@ -520,13 +708,9 @@ fun.product = function(ns) {
 
     fun.Right = function(val) {
         return {
-            _isLeft: false,
-            _isRight: true,
-            _val: val,
-
-            fmap: function(f) {
-                return fun.Right(f(val));
-            }
+            val:    function()  { return val; },
+            isLeft: function()  { return false; },
+            fmap:   function(f) { return fun.Right(f(val)); }
         };
     };
 
@@ -535,13 +719,7 @@ fun.product = function(ns) {
         if ((! fun.isFunction(f)) || (! fun.isFunction(g))) {
             return Either.Undefined;
         } else {
-            if (obj._isLeft) {
-                return f(obj._val);
-            } else if (obj._isRight) {
-                return g(obj._val);
-            } else {
-                return Either.Undefined;
-            }
+            return obj.isLeft() ? f(obj.val()) : g(obj.val());
         }
     }.autoCurry();
 
@@ -550,7 +728,7 @@ fun.product = function(ns) {
             return Either.Undefined;
         } else {
             return array.reduce(function(acc, el) {
-                return el._isLeft ? acc.concat(el._val) : acc;
+                return el.isLeft() ? acc.concat(el.val()) : acc;
             }, []);
         }
     };
@@ -560,186 +738,11 @@ fun.product = function(ns) {
             return Either.Undefined;
         } else {
             return array.reduce(function(acc, el) {
-                return el._isRight ? acc.concat(el._val) : acc;
+                return el.isLeft() ? acc : acc.concat(el.val());
             }, []);
         }
     };
-
-    // ==============
-    // Function Types
-    // ==============
-
-    /*
-     * If you're wondering why I only go up to functions with
-     * 10 parameters here, please see Perlisisms #11 at
-     * http://www.cs.yale.edu/homes/perlis-alan/quotes.html
-     * 
-     * These are used in Iface.parse below.
-     */
-    var FunctionWithArity = [
-        function()                    {},
-        function(a)                   {},
-        function(a,b)                 {},
-        function(a,b,c)               {},
-        function(a,b,c,d)             {},
-        function(a,b,c,d,e)           {},
-        function(a,b,c,d,e,f)         {},
-        function(a,b,c,d,e,f,g)       {},
-        function(a,b,c,d,e,f,g,h)     {},
-        function(a,b,c,d,e,f,g,h,i)   {},
-        function(a,b,c,d,e,f,g,h,i,j) {}
-    ];
-
-    // =====
-    // Iface
-    // =====
-
-    // string that separates function name from arity in
-    // Iface.toString and Iface.parse
-    var _arsep   = ",";
-    // string that separates function name/arity strings in
-    // Iface.toString and Iface.parse
-    var _fsep    = "_&_";
-
-    // private Iface constructor
-    function Iface(desc) {
-        if (! fun.isNonNullObject(desc)) {
-            throw new Error("Iface constructor requires an object");
-        }
-        // cache an object with just the functions of desc
-        if (! fun.isFunction(fun.functions)) {
-            throw new Error("fun.functions has not been defined yet");
-        }
-        this._methods = fun.functions(desc);
-    }
-
-    /*
-     * Convert an Iface to a string.
-     * 
-     * Example:
-     *     var Person = Iface({
-     *         greet: function(person) {},
-     *         introduce: function(p1, p2) {}
-     *     });
-     * 
-     *     Person.toString();
-     *     // => "greet,1_&_introduce,2"
-     */
-    Iface.prototype.toString = function() {
-        return this._methods.map(function(m) {
-            return m + _arsep + arity(m);
-        }).join(_fsep);
-    };
-
-    /*
-     * Class method to parse an Iface from a string.
-     * Returns Iface.ParseError if it cannot parse the string.
-     * 
-     * Example:
-     *     var PersonFromString = Iface.parse("greet,1_&_introduce,2");
-     *     // equivalent to
-     *     
-     */
-    Iface.parse = (function() {
-        var cache = {};
-
-        return function(s) {
-            if (typeof s !== "string") {
-                return new Error("Iface.parse only accepts strings");
-            }
-            
-            if (! cache.hasOwnProperty(s)) {
-                var len = s.length;
-
-                if (len === 0) {
-                    // if it is the empty string
-                    cache[s] = new Iface({});
-                } else {
-                    var fs = s.split(_fsep);
-
-                    // parse the string and cache the result
-                    cache[s] = fs.reduce(function(acc, str) {
-                        var arsepIndex = str.indexOf(_arsep);
-
-                        if (arsepIndex > 0 && arsepIndex < len - 1) {
-                            // "<name>,<arity>"
-                            var f_parts   = str.split(",");
-                            var f_name    = f_parts[0];
-                            var f_arity   = parseInt(f_parts[1], 10);
-
-                            if (isNaN(f_arity)) {
-                                throw new Error("Could not parse function arity from " + str);
-                            } else if (f_arity > 10) {
-                                throw new Error("Iface.parse does not support functions with arity > 10");
-                            }
-
-                            acc[f_name] = FunctionWithArity[f_arity];
-                        } else if (arsepIndex === 0) {
-                            // ",<arity>"
-                            throw new Error("Iface.parse does not support empty function names");
-                        } else {
-                            // "<name>," or "<name>"
-                            acc[str] = FunctionWithArity[0];
-                        }
-                        
-                        return acc;
-                    }, {});
-                }
-            }
-
-            return cache[s];
-        };
-    })();
-
-    function arity(f) { return f.length; }
-
-    /**
-     * Duck-type an object to see if it implements an interface.
-     * @param {Object} obj - The object under inspection.
-     * @return {Boolean} true if the object implements this interface, false otherwise
-     */
-    Iface.prototype.check = function(obj) {
-        var self = this,
-            myFuncs = self._methods,
-            myFuncNames = fun.keys(self._methods),
-            objFuncs = fun.functions(obj),
-            objFuncNames = fun.keys(objFuncs);
         
-        if(! fun.isArray(myFuncNames)) {
-            return false;
-        } else if (! fun.isArray(objFuncNames)) {
-            return false;
-        } else if (myFuncNames.length !== objFuncNames.length) {
-            return false;
-        } else {
-            return myFuncNames.reduce(function(acc, m) {
-                return acc &&
-                    fun.isFunction(objFuncs[m]) &&
-                    fun.identical(arity(myFuncs[m]), arity(objFuncs[m]));
-            }, true);
-        }
-    };
-
-    /**
-     * Create a new Iface.
-     * @param {Object} desc - An object with functions that specify the interface.
-     * @return {Iface} A new Iface instance.
-     */
-    fun.Iface = function(desc) {
-        if (! fun.isNonNullObject(desc)) {
-            throw new Error("Iface constructor expects an object");
-        }
-        return new Iface(desc);
-    };
-
-    // =======
-    // Functor
-    // =======
-
-    fun.Functor = new Iface({
-        fmap: function(f) {}
-    });
-
 })();
 
 //+ fmap :: (a -> b) -> f a -> f b

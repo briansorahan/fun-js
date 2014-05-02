@@ -85,131 +85,140 @@ describe("fun.js", function() {
 		return y - x;
     }.autoCurry();
 
-    // ====
-    // Pair
-    // ====
+    describe("Types", function() {
+        describe("Pair", function() {
+            var p = Pair(1, 2);
 
-    describe("Pair", function() {
-        var p = Pair(1, 2);
+            it(isGlobalizable, function() {
+                expect(typeof Pair).toEqual("function");
+            });
 
-        it(isGlobalizable, function() {
-            expect(typeof Pair).toEqual("function");
+            it(isCurriable, function() {
+                expect(typeof Pair(1)).toEqual("function");
+            });
+
+            it("exposes its wrapped values through fst and snd", function() {
+                expect(fst(p)).toEqual(1);
+                expect(snd(p)).toEqual(2);
+            });
         });
 
-        it(isCurriable, function() {
-            expect(typeof Pair(1)).toEqual("function");
+        describe("Maybe", function() {
+            it("is a Functor", function() {
+                expect(isa(Functor, Just(1))).toBe(true);
+            });
+
+            it("returns Nothing when trying to fmap over null and undefined", function() {
+                expect(fmap(function() {}, Just(null))).toEqual(Nothing);
+            });
+
+            it("returns Nothing when trying to fmap over Maybe(undefined)", function() {
+                expect(fmap(function() {}, Just(undefined))).toEqual(Nothing);
+            });
         });
 
-        it("exposes its wrapped values through fst and snd", function() {
-            expect(fst(p)).toEqual(1);
-            expect(snd(p)).toEqual(2);
-        });
-    });
+        describe("Either", function() {
+            var timesTwo = multiply(2);
 
-    // =====
-    // Maybe
-    // =====
+            it("provides Left and Right data constructors", function() {
+                expect(isFunction(Left)).toBe(true);
+                expect(isFunction(Right)).toBe(true);
+            });
+            
+            it("implements fmap", function() {
+                var l = Left(1);
 
-    describe("Maybe", function() {
-        it("is a Functor", function() {
-            expect(isa(Functor, Maybe(1))).toBe(true);
-        });
+                function fail() { expect(1).toEqual(3); }
+                function pass(result) { expect(result).toEqual(6); }
 
-        it("returns Nothing when trying to fmap over Maybe(null)", function() {
-            expect(fmap(function() {}, Maybe(null))).toEqual(Nothing);
-        });
-
-        it("returns Nothing when trying to fmap over Maybe(undefined)", function() {
-            expect(fmap(function() {}, Maybe(undefined))).toEqual(Nothing);
-        });
-    });
-
-    // ======
-    // Either
-    // ======
-
-    describe("Either", function() {
-        var timesTwo = multiply(2);
-
-        it("provides Left and Right data constructors", function() {
-            expect(isFunction(Left)).toBe(true);
-            expect(isFunction(Right)).toBe(true);
-        });
-        
-        it("implements fmap", function() {
-            var l = Left(1);
-
-            function fail() { expect(1).toEqual(3); }
-            function pass(result) { expect(result).toEqual(6); }
-
-            expect(fmap(function() {}, l)).toEqual(l);
-            expect(either(fail, pass, fmap(timesTwo, Right(3))));
-        });
-    });
-
-    // =====
-    // Iface
-    // =====
-
-    describe("Iface", function() {
-        var Person = Iface({
-            greets: function(guest) {},
-            introduces: function(p1, p2) {}
+                expect(fmap(function() {}, l)).toEqual(l);
+                expect(either(fail, pass, fmap(timesTwo, Right(3))));
+            });
         });
 
-        var isaPerson = isa(Person);
+        describe("Iface", function() {
+            var Person = Iface({
+                greets: function(guest) {},
+                stops: function(evil) {}
+            });
 
-        it(isGlobalizable, function() {
-            expect(isFunction(Iface)).toBe(true);
-        });
+            var isaPerson = isa(Person);
 
-        it(isCurriable, function() {
-            expect(isFunction(isaPerson)).toBe(true);
-        });
+            var Animal = Iface.parse("breathe/1 eat/1");
+            var Star = Iface.parse("burn expand");
 
-        function badIface(type) {
-            switch(type) {
-            case "number":
-                return function() { Iface(23); };
-            case "array":
-                return function() { Iface([]); };
-            case "string":
-                return function() { Iface("foo"); };
-            case "function":
-                return function() { Iface(function() {}); };
-            case "null":
-                return function() { Iface(null); };
-            default:
-                return function() { Iface(undefined); };
-            }
-        }
+            var Fish = {
+                breathe: function(stuff) {},
+                eat: function(stuff) {}
+            };
 
-        it("throws if the constructor is not passed an object", function() {
-            expect(badIface("number")).toThrow();
-            expect(badIface("array")).toThrow();
-            expect(badIface("string")).toThrow();
-            expect(badIface("function")).toThrow();
-            expect(badIface("null")).toThrow();
-            expect(badIface()).toThrow();
-        });
+            var Machine = {
+                computes: function(stuff) {}
+            };
 
-        it("enables type-checking through isa", function() {
             var Brian = {
-                greets: function(guest) {
-                    console.log("hello, " + guest);
-                },
-                introduces: function(p1, p2) {
-                    console.log(p1 + ", I'd like you to meet " + p2);
-                }
+                greets: function(guest) {},
+                stops: function(evil) {}
             };
 
             var Klaatu = {
-                vaporizes: function(guest) { console.log("zeeew!"); },
+                vaporizes: function(guest) {},
                 stops: function(time) {}
             };
             
-            expect(isa(Person)(Brian)).toBe(true);
-            expect(isa(Person)(Klaatu)).toBe(false);
+            it(isGlobalizable, function() {
+                expect(isFunction(Iface)).toBe(true);
+            });
+
+            it(isCurriable, function() {
+                expect(isFunction(isaPerson)).toBe(true);
+            });
+
+            function badIface(type) {
+                switch(type) {
+                case "number":
+                    return function() { Iface(23); };
+                case "array":
+                    return function() { Iface([]); };
+                case "string":
+                    return function() { Iface("foo"); };
+                case "function":
+                    return function() { Iface(function() {}); };
+                case "null":
+                    return function() { Iface(null); };
+                default:
+                    return function() { Iface(undefined); };
+                }
+            }
+
+            it("throws if the constructor is not passed an object", function() {
+                expect(badIface("number")).toThrow();
+                expect(badIface("array")).toThrow();
+                expect(badIface("string")).toThrow();
+                expect(badIface("function")).toThrow();
+                expect(badIface("null")).toThrow();
+                expect(badIface()).toThrow();
+            });
+
+            it("enables type-checking through isa", function() {
+                expect(isa(Person)(Brian)).toBe(true);
+                expect(isa(Person)(Klaatu)).toBe(false);
+            });
+
+            it("can parse an Iface from a String", function() {
+                expect(isa(Animal)(Fish)).toBe(true);
+                expect(isa(Animal)(Machine)).toBe(false);
+            });
+
+            it("provides an imp method that throws if an Object does not provide a complete implementation", function() {
+                var bad = function() {
+                    return Animal.imp({
+                        breathe: function(stuff) {}
+                        // missing 'eats' method
+                    });
+                };
+                expect(bad).toThrow();
+            });
         });
     });
 
@@ -227,9 +236,50 @@ describe("fun.js", function() {
 		});
     });
 
-	// =============
-	// Type Checking
-	// =============
+    describe("echo", function() {
+        it(isGlobalizable, function() {
+            expect(isFunction(echo)).toBe(true);
+        });
+
+        it("returns a function that echoes the value you pass in", function() {
+            expect(echo(4)()).toEqual(4);
+        });
+    });
+
+    describe("If", function() {
+        it(isGlobalizable, function() {
+            expect(isFunction(If)).toBe(true);
+        });
+
+        it("returns an Object with a 'Then' method", function() {
+            expect(isFunction(If(true).Then)).toBe(true);
+        });
+
+        describe("Then", function() {
+            it("returns an Object with a 'Else' method", function() {
+                expect(isFunction(If(true).Then(null).Else)).toBe(true);
+            });
+
+            it("will call a Function, or just return the given value", function() {
+                var val1 = If(true).Then(function() { return 3; }).Else("bar");
+                var val2 = If(true).Then(3).Else("foo");
+                expect(val1).toEqual(val2);
+            });
+
+            it("only returns the value you expect if you chain an Else on the end", function() {
+                expect(isFunction(If(true).Then("foo").Else)).toBe(true);
+            });
+
+
+            describe("Else", function() {
+                it("will call a Function, or just return the given value", function() {
+                    var val1 = If(false).Then(function() { return 1; }).Else("foo");
+                    var val2 = If(false).Then(2).Else("foo");
+                    expect(val1).toEqual(val2);
+                });
+            });
+        });
+    });
 
     describe("isNull", function() {
 		it(isGlobalizable, function() {
@@ -492,7 +542,7 @@ describe("fun.js", function() {
 
         it("calls the functor's fmap method with the supplied function", function() {
             var addTwo = function(n) { return n + 2; };
-            expect(fromMaybe(undefined, fmap(addTwo, Maybe(4)))).toEqual(6);
+            expect(fromMaybe(undefined, fmap(addTwo, Just(4)))).toEqual(6);
         });
     });
 
