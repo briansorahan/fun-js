@@ -170,10 +170,6 @@ describe("fun.js", function() {
                 expect(isFunction(Iface)).toBe(true);
             });
 
-            it(isCurriable, function() {
-                expect(isFunction(isaPerson)).toBe(true);
-            });
-
             function badIface(type) {
                 switch(type) {
                 case "number":
