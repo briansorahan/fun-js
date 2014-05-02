@@ -233,11 +233,9 @@ describe("fun.js", function() {
                             return "string_matched";
                         }).Of([1,2,3], function() {
                             expect(val).toEqual([1,2,3]);
-                            console.log("123_matched");
                             return "123_matched";
                         }).Of(Array, function() {
                             expect(isArray(val)).toBe(true);
-                            console.log("array_matched");
                             return "array_matched";
                         }).Of(Person, function() {
                             expect(isa(Person)(val)).toBe(true);
