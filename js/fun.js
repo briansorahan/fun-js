@@ -76,25 +76,54 @@ fun.isInteger = function(n) {
     return fun.isNumber(n) && Math.floor(n) === n;
 };
 
+//+ isInfinity :: _ -> Boolean
+fun.isInfinity = function(n) {
+    return n === Infinity;
+};
+
+//+ isRegexp :: _ -> Boolean
+fun.isRegexp = function(obj) {
+    return fun.isNonNullObject(obj)
+        && fun.isFunction(obj.test)
+        && fun.isFunction(obj.exec);
+};
+
+//+ If   :: Boolean  -> Then
+//+ Then :: Function -> Else
+//+ Else :: Function -> _
 fun.If = function(p) {
-    return {
-        Then: function(f) {
+    var Then = function(condition) {
+        return function(f) {
             return {
+                Elif: function(q) {
+                    return {
+                        Then: Then(q)
+                    };
+                },
                 Else: function(g) {
-                    if (p) {
-                        return fun.isFunction(f) ? f() : f;
+                    if (condition) {
+                        return fun.valueOf(f);
                     } else {
-                        return fun.isFunction(g) ? g() : g;
+                        return fun.valueOf(g);
                     }
                 }
             };
-        }
+        };
+    };
+
+    return {
+        Then: Then(p)
     };
 };
 
-////////////////////////////////////////
-// Function
-////////////////////////////////////////
+//+ valueOf :: _ -> _
+//! If val is a function, call it, otherwise return it.
+fun.valueOf = function(val) {
+    if (fun.isFunction(val))
+        return val();
+    else
+        return val;
+};
 
 //- from wu.js <http://fitzgen.github.com/wu.js/>
 //+ curry :: f -> _ ... -> g
@@ -143,6 +172,7 @@ fun.compose = function() {
 }.autoCurry();
 
 //+ composer :: f -> g -> h
+//! Just like compose, but with the order reversed.
 fun.composer = function() {
     var fns = Array.prototype.slice.call(arguments), numFns = fns.length;
     return function () {
@@ -157,13 +187,9 @@ fun.composer = function() {
 //+ flip :: f -> g 
 fun.flip = function(f) {
     return function () {
-	return f(arguments[1], arguments[0]);
+	    return f(arguments[1], arguments[0]);
     };
 };
-
-////////////////////////////////////////
-// Comparison
-////////////////////////////////////////
 
 //+ equal :: a -> a -> Boolean
 // Note: type coercion
@@ -227,10 +253,6 @@ fun.deepEqual = deepEqualWith(fun.equal);
 //+ strictDeepEqual :: _ -> _ -> Boolean
 fun.strictDeepEqual = deepEqualWith(fun.identical);
 
-////////////////////////////////////////
-// Logic
-////////////////////////////////////////
-
 //+ and :: _ ... -> Boolean
 fun.and = function () {
     var args = Array.prototype.slice.call(arguments);
@@ -255,10 +277,6 @@ fun.or = function () {
 fun.not = function(x) {
     return !x;
 };
-
-////////////////////////////////////////
-// Object
-////////////////////////////////////////
 
 //+ pluck :: String -> Object -> _
 fun.pluck = function (name, obj) {
@@ -603,7 +621,70 @@ fun.product = function(ns) {
     //+ class Monad m where
     //+     ret  :: a -> m a
     //+     bind :: m a -> (a -> m b) -> m b
-    fun.Monad = Iface.parse("ret bind/2");
+    fun.Monad = Iface.parse("ret/1 bind/2");
+
+    //
+    // Pattern Matching 
+    // 
+    // We would probably want different behavior for different types.
+    // For Iface we would want to match with isa.
+    // For String we would want to match with Regexp or identical.
+    // For Number we would want to use identical.
+    // For Array we would want to use pair-wise identical.
+    // For Object we would want to use deepEqual.
+    // For Infinity, null, undefined we would use identical.
+    //
+    function CaseMatch(pattern, val) {
+        if (pattern instanceof Iface && fun.isa(pattern, val)) {
+            return true;
+        } else if (fun.isString(val)) {
+            if (pattern === String) 
+                return typeof val === "string";
+            else
+                return fun.isRegexp(pattern) ? pattern.test(val) : pattern === val;
+        } else if (fun.isNumber(val)) {
+            return pattern === val;
+        } else if (fun.isArray(val) || fun.isNonNullObject(val)) {
+            return fun.strictDeepEqual(pattern, val) || val instanceof pattern;
+        } else if (fun.isInifinity(val)) {
+            return fun.isInfinity(pattern);
+        } else {
+            return (typeof val === pattern)
+                || (val instanceof pattern)
+                || val === pattern
+                || val == pattern;
+        }
+    };
+
+    var Case = {
+        Fail: {}
+    };
+
+    fun.Case = function(val) {
+        function Of(result) {
+            return function(pattern, f) {
+                if (CaseMatch(pattern, val)) {
+                    result = fun.valueOf(f);
+                }
+                return {
+                    Of: Of(result),
+                    Otherwise: function(g) {
+                        if (result !== Case.Fail) {
+                            console.log("result = " + result);
+                            return result;
+                        } else {
+                            console.log("calling otherwise function");
+                            return fun.valueOf(g);
+                        }
+                    }
+                };
+            };
+        }
+
+        return {
+            Of: Of(Case.Fail)
+        };
+    };
 
     // Pair
     var Pair = function(x, y) {
@@ -639,7 +720,7 @@ fun.product = function(ns) {
     };
 
     //+ snd :: (a -> b -> c) -> a
-;    fun.snd = function(a, b) {
+    fun.snd = function(a, b) {
         if (fun.isPair(a) && (typeof b === "undefined")) {
             return a.second();
         } else {
@@ -648,32 +729,38 @@ fun.product = function(ns) {
     };
 
     // data Maybe a = Nothing | Just a
-    fun.Maybe = Iface.parse("isNothing fmap/1 ret bind/2");
-
-    fun.Nothing = function(val) {
-        return fun.Maybe.imp({
-            isNothing: function()     { return true; },
-            fmap:      function(f)    { return fun.Nothing; },
-            ret:       function()     { return fun.Nothing; },
-            bind:      function(a, f) { return fun.Nothing; }
-        });
+    fun.Maybe = Iface.parse("isNothing fmap/1 ret/1 bind/2");
+    
+    var Maybe = function(val) {
+        if (! fun.isDefined(val)) {
+            return fun.Nothing;
+        } else if (fun.isNull(val)) {
+            return fun.Nothing;
+        } else {
+            return fun.Just(val);
+        }
     };
+
+    fun.Nothing = fun.Maybe.imp({
+        isNothing: function()     { return true; },
+        // instance Functor where
+        fmap:      function(f)    { return fun.Nothing; },
+        // instance Monad where
+        ret:       function(a)    { return fun.Nothing; },
+        bind:      function(a, f) { return fun.Nothing; }
+    });
 
     // We map the javascript values undefined and null
     // to Nothing.
     fun.Just = function(val) {
-        if (! fun.isDefined(val)) {
-            return fun.Nothing(val);
-        } else if (fun.isNull(val)) {
-            return fun.Nothing(val);
-        } else {
-            return fun.Maybe.imp({
-                isNothing: function()     { return false; },
-                fmap:      function(f)    { return fun.Just(f(val)); },
-                ret:       function()     { return val; },
-                bind:      function(a, f) { return fun.Maybe.imp(f(a)); }
-            });
-        }
+        return fun.Maybe.imp({
+            isNothing: function()     { return false; },
+            // instance Functor where
+            fmap:      function(f)    { return Maybe(f(val)); },
+            // instance Monad where
+            ret:       function(a)    { return Maybe(a); },
+            bind:      function(a, f) { return Maybe(f(a)); }
+        });
     };
 
     //+ fromMaybe :: a -> Maybe a -> a
@@ -738,7 +825,7 @@ fun.product = function(ns) {
             }, []);
         }
     };
-        
+
 })();
 
 //+ fmap :: (a -> b) -> f a -> f b
