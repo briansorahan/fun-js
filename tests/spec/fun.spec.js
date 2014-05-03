@@ -91,6 +91,33 @@ describe("fun.js", function() {
     });
 
     describe("Types", function() {
+        describe("Functor", function() {
+            it("requires fmap/1", function() {
+                expect(isObject(Functor.imp({ fmap: function(f) {} }))).toBe(true);
+
+                function bad() {
+                    return Functor.imp({ fmap: function(a,b){} });
+                }
+
+                expect(bad).toThrow();
+            });
+        });
+
+        describe("Monad", function() {
+            it("requires ret/1 and bind/1", function() {
+                var m  = { ret: function(a){}, bind: function(f)  {} };
+                var nm = { ret: function(a){}, bind: function(f,g){} };
+
+                expect(isObject(Monad.imp(m))).toBe(true);
+
+                function bad() {
+                    return Monad.imp(nm);
+                }
+
+                expect(bad).toThrow();
+            });
+        });
+
         describe("Pair", function() {
             var p = Pair(1, 2);
 
@@ -315,6 +342,13 @@ describe("fun.js", function() {
             var nextHigherSquare = function(n) { return until(gt(n), square, 2); };
             expect(nextHigherSquare(10)).toEqual(16);
         });
+
+        it("throws if either of its first two arguments is not a function", function() {
+            var bad = function() { until("foo", function(){}, 3); };
+            var worse = function() { until(function() {}, "bar", 3); };
+            expect(bad).toThrow();
+            expect(worse).toThrow();
+        });
     });
 
     describe("If", function() {
@@ -420,30 +454,6 @@ describe("fun.js", function() {
     	});
     });
 
-    describe("isObject", function() {
-    	it(isGlobalizable, function() {
-    	    expect(typeof isObject).toEqual('function');
-    	});
-		
-    	it("returns false for undefined", function() {
-    	    expect(isObject(undefined)).toBe(false);
-    	});
-
-    	it("returns false for number, array, function", function() {
-    	    expect(isObject(3)).toBe(false);
-    	    expect(isObject([])).toBe(false);
-    	    expect(isObject(function() {})).toBe(false);
-    	});
-		
-    	it("returns true for null", function() {
-    	    expect(isObject(null)).toBe(true);
-    	});
-
-    	it("returns true for object", function() {
-    	    expect(isObject({})).toBe(true);
-    	});
-    });
-
     describe("isFunction", function() {
         it(isGlobalizable, function() {
             // hahahahaha
@@ -464,18 +474,18 @@ describe("fun.js", function() {
         });
     });
 
-    describe("isNonNullObject", function() {
+    describe("isObject", function() {
         it(isGlobalizable, function() {
-            expect(isFunction(isNonNullObject)).toBe(true);
+            expect(isFunction(isObject)).toBe(true);
         });
 
         it("returns false for null, undefined, Number, Array, String, Function", function() {
-            expect(isNonNullObject(null)).toBe(false);
-            expect(isNonNullObject(undefined)).toBe(false);
-            expect(isNonNullObject(3)).toBe(false);
-            expect(isNonNullObject([])).toBe(false);
-            expect(isNonNullObject("bar")).toBe(false);
-            expect(isNonNullObject(function() {})).toBe(false);
+            expect(isObject(null)).toBe(false);
+            expect(isObject(undefined)).toBe(false);
+            expect(isObject(3)).toBe(false);
+            expect(isObject([])).toBe(false);
+            expect(isObject("bar")).toBe(false);
+            expect(isObject(function() {})).toBe(false);
         });
     });
 
@@ -823,6 +833,34 @@ describe("fun.js", function() {
 		it("functions exactly like the builtin Array.every", function() {
 			expect(ubiquitousID(users)).toBe(true);
 		});
+    });
+
+    describe("iterate", function() {
+        var fibonaccis = iterate(function(pair) {
+            // (x, y) => (y, x + y)
+            return Pair(snd(pair), fst(pair) + snd(pair));
+        });
+
+		it(isGlobalizable, function() {
+			expect(isFunction(iterate)).toBe(true);
+		});
+
+		it(isCurriable, function() {
+			expect(isFunction(fibonaccis)).toBe(true);
+		});
+
+        it("applies f to x indefinitely", function() {
+            var iter = fibonaccis(Pair(1, 1));
+
+            iter = iter.next();
+            expect( snd(iter.val()) ).toEqual(2);
+            iter = iter.next();
+            expect( snd(iter.val()) ).toEqual(3);
+            iter = iter.next();
+            expect( snd(iter.val()) ).toEqual(5);
+            iter = iter.next();
+            expect( snd(iter.val()) ).toEqual(8);
+        });
     });
 
     describe("find", function() {

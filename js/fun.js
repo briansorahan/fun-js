@@ -50,7 +50,7 @@ fun.isString = function(obj) {
 };
 
 //+ isObject :: _ -> Boolean
-fun.isObject = function(obj) {
+function isObject(obj) {
     return ((typeof obj === "object") && (! fun.isArray(obj)));
 };
 
@@ -59,9 +59,11 @@ fun.isFunction = function(f) {
     return typeof f === "function";
 };
 
-//+ isNonNullObject :: _ -> Boolean
-fun.isNonNullObject = function(obj) {
-    return obj !== undefined && obj !== null && fun.isObject(obj);
+//+ isObject :: _ -> Boolean
+fun.isObject = function(obj) {
+    return obj !== undefined
+        && obj !== null
+        && isObject(obj);
 };
 
 //+ isNumber :: _ -> Boolean
@@ -83,7 +85,7 @@ fun.isInfinity = function(n) {
 
 //+ isRegexp :: _ -> Boolean
 fun.isRegexp = function(obj) {
-    return fun.isNonNullObject(obj)
+    return fun.isObject(obj)
         && fun.isFunction(obj.test)
         && fun.isFunction(obj.exec);
 };
@@ -156,7 +158,7 @@ var autoCurry = function (fn, numArgs) {
 };
 
 Function.prototype.autoCurry = function(n) {
-    return autoCurry(this, n);
+    return autoCurry(this, n || this.length);
 };
 
 //+ compose :: f -> g -> h 
@@ -194,13 +196,7 @@ fun.flip = function(f) {
 //+ until :: (a -> Boolean) -> (a -> a) -> a -> a
 //! until p f applies f until p holds
 fun.until = function(p, f, x) {
-    if (! fun.isFunction(p)) {
-        throw new Error("(until) arg p must be a function");
-    } else if (! fun.isFunction(f)) {
-        throw new Error("(until) arg f must be a function");
-    } else {
-        return p(x) ? x : fun.until(p, f, f(x));
-    }
+    return p(x) ? x : fun.until(p, f, f(x));
 }.autoCurry();
 
 //+ equal :: a -> a -> Boolean
@@ -242,8 +238,8 @@ var deepEqualWith = function(cmp) {
             return a.length === b.length && a.every(function(el, i) {
                 return deqw(el, b[i]);
             });
-        } else if (fun.isNonNullObject(a)) {
-            if (! fun.isNonNullObject(b)) return false;
+        } else if (fun.isObject(a)) {
+            if (! fun.isObject(b)) return false;
 
             var aprops = Object.getOwnPropertyNames(a);
             var bprops = Object.getOwnPropertyNames(b);
@@ -323,7 +319,7 @@ fun.isnota = fun.compose(fun.not, fun.isa);
 fun.objMap = function(f, obj) {
 	var result = [], index = 0;
 
-    if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
+    if (fun.isObject(obj) || fun.isFunction(obj)) {
 	    for (var property in obj) {
 		    if (obj.hasOwnProperty(property)) {
 			    result[index++] = f(property, obj[property]);
@@ -361,7 +357,7 @@ fun.reduceOwn = function(f, obj) {
         return result;
     };
 
-    if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
+    if (fun.isObject(obj) || fun.isFunction(obj)) {
         return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
     } else {
         return undefined;
@@ -384,7 +380,7 @@ fun.filterObject = function(f, obj) {
 fun.functions = function(obj) {
     if (fun.isArray(obj)) {
         return obj.filter(fun.isFunction);
-    } else if (fun.isNonNullObject(obj) || fun.isFunction(obj)) {
+    } else if (fun.isObject(obj) || fun.isFunction(obj)) {
         var f = function(acc, key, val) {
             return fun.isFunction(val);
         };
@@ -481,7 +477,7 @@ fun.product = function(ns) {
 
     // private Iface constructor
     function Iface(desc) {
-        if (! fun.isNonNullObject(desc)) {
+        if (! fun.isObject(desc)) {
             throw new Error("Iface constructor requires an object");
         }
         if (! fun.isFunction(fun.functions)) {
@@ -501,7 +497,7 @@ fun.product = function(ns) {
      *     });
      * 
      *     Person.toString();
-     *     // => "greet,1_&_introduce,2"
+     *     // => "greet/1 introduce/2"
      */
     Iface.prototype.toString = function() {
         return fun.objMap(function(k, v) {
@@ -518,59 +514,76 @@ fun.product = function(ns) {
      *     // equivalent to
      *     
      */
-    Iface.parse = (function() {
-        var cache = {};
+    Iface.Empty     = new Iface({});
+    Iface.EmptyDesc = {};
 
-        return function(s) {
-            if (typeof s !== "string") {
-                return new Error("Iface.parse only accepts strings");
-            }
-            
-            if (! cache.hasOwnProperty(s)) {
-                var len = s.length;
+    //+ ParseIfaceDescFrom :: String -> Object
+    //! Generate an Object suitable for passing to the Iface
+    //! constructor by parsing a string.
+    function ParseIfaceDescFrom(s) {
+        if (typeof s !== "string") {
+            return new Error("Iface.parse only accepts strings");
+        }
+        
+        var len = s.length;
 
-                if (len === 0) {
-                    // if it is the empty string
-                    cache[s] = new Iface({});
+        if (len === 0) {
+            // if it is the empty string
+            return Iface.EmptyDesc;
+            // return Iface.Empty;
+        } else {
+            var fs = s.split(functionSeparator);
+
+            // parse the string and cache the result
+            var desc = fs.reduce(function(acc, str) {
+                var arsepIndex = str.indexOf(aritySeparator);
+
+                if (arsepIndex > 0 && arsepIndex < len - 1) {
+                    // "<name>,<arity>"
+                    var f_parts   = str.split(aritySeparator);
+                    var f_name    = f_parts[0];
+                    var f_arity   = parseInt(f_parts[1], 10);
+
+                    if (isNaN(f_arity)) {
+                        throw new Error("Could not parse function arity from " + str);
+                    } else if (f_arity > 10) {
+                        throw new Error("Iface.parse does not support functions with arity > 10");
+                    }
+
+                    // console.log("parsed function " + f_name + " with arity " + f_arity);
+                    acc[f_name] = FunctionWithArity[f_arity];
+                } else if (arsepIndex === 0) {
+                    // ",<arity>"
+                    throw new Error("Iface.parse does not support empty function names");
                 } else {
-                    var fs = s.split(functionSeparator);
-
-                    // parse the string and cache the result
-                    var desc = fs.reduce(function(acc, str) {
-                        var arsepIndex = str.indexOf(aritySeparator);
-
-                        if (arsepIndex > 0 && arsepIndex < len - 1) {
-                            // "<name>,<arity>"
-                            var f_parts   = str.split(aritySeparator);
-                            var f_name    = f_parts[0];
-                            var f_arity   = parseInt(f_parts[1], 10);
-
-                            if (isNaN(f_arity)) {
-                                throw new Error("Could not parse function arity from " + str);
-                            } else if (f_arity > 10) {
-                                throw new Error("Iface.parse does not support functions with arity > 10");
-                            }
-
-                            // console.log("parsed function " + f_name + " with arity " + f_arity);
-                            acc[f_name] = FunctionWithArity[f_arity];
-                        } else if (arsepIndex === 0) {
-                            // ",<arity>"
-                            throw new Error("Iface.parse does not support empty function names");
-                        } else {
-                            // "<name>," or "<name>"
-                            acc[str] = FunctionWithArity[0];
-                        }
-                        
-                        return acc;
-                    }, {});
-
-                    cache[s] = new Iface(desc);
+                    // "<name>," or "<name>"
+                    acc[str] = FunctionWithArity[0];
                 }
-            }
+                
+                return acc;
+            }, {});
 
-            return cache[s];
-        };
-    })();
+            return desc;
+        }
+    }
+
+    /*
+     * Parse an Iface from any number of strings.
+     * Example:
+     *     var Person = Iface.parse("sleepsFor/1 eats/1 breathes/1");
+     *     // is equivalent to
+     *     var Person = Iface.parse("sleepsFor/1",
+     *                              "eats/1",
+     *                              "breathes/1");
+     */
+    Iface.parse = function() {
+        var args = Array.prototype.slice.call(arguments);
+        var merged = args.reduce(function(acc, s) {
+            var o = ParseIfaceDescFrom(s);
+            return o === Iface.EmptyDesc ? acc : fun.merge(acc, o);
+        }, {});
+        return new Iface(merged);
+    };
 
     function arity(f) { return f.length; }
 
@@ -619,21 +632,28 @@ fun.product = function(ns) {
      * @return {Iface} A new Iface instance.
      */
     fun.Iface = function(desc) {
-        if (! fun.isNonNullObject(desc)) {
+        if (! fun.isObject(desc)) {
             throw new Error("Iface constructor expects an object");
         }
         return new Iface(desc);
     };
 
     fun.Iface.parse = Iface.parse;
+    fun.Iface.Empty = Iface.Empty;
 
     //+ class Functor f where
-    //+     fmap :: (a -> b) -> f a -> f b    
+    //+ fmap :: (a -> b) -> f a -> f b    
     fun.Functor = Iface.parse("fmap/1");
+
     //+ class Monad m where
-    //+     ret  :: a -> m a
-    //+     bind :: m a -> (a -> m b) -> m b
-    fun.Monad = Iface.parse("ret/1 bind/2");
+    //+ ret  :: a -> m a
+    //+ bind :: m a -> (a -> m b) -> m b
+    fun.Monad = Iface.parse("ret/1 bind/1");
+
+    //+ mjoin :: (Monad m) => m (m a) -> m a
+    fun.mjoin = function(m) {
+        return m.bind(fun.id);
+    };
 
     /*
      * Pattern matching according to the following rules:
@@ -658,10 +678,10 @@ fun.product = function(ns) {
                 return true;
             } else if (fun.isArray(pattern) && fun.strictDeepEqual(pattern, val)) {
                 return true;
-            } else if (fun.isNonNullObject(val)) {
+            } else if (fun.isObject(val)) {
                 if (pattern === Object) {
                     return true;
-                } else if (fun.isNonNullObject(pattern) && fun.strictDeepEqual(pattern, val)) {
+                } else if (fun.isObject(pattern) && fun.strictDeepEqual(pattern, val)) {
                     return true;
                 } else {
                     return false;
@@ -750,7 +770,7 @@ fun.product = function(ns) {
     };
 
     // data Maybe a = Nothing | Just a
-    fun.Maybe = Iface.parse("isNothing fmap/1 ret/1 bind/2");
+    fun.Maybe = Iface.parse("isNothing fmap/1 ret/1 bind/1");
     
     var Maybe = function(val) {
         if (! fun.isDefined(val)) {
@@ -768,7 +788,7 @@ fun.product = function(ns) {
         fmap:      function(f)    { return fun.Nothing; },
         // instance Monad where
         ret:       function(a)    { return fun.Nothing; },
-        bind:      function(a, f) { return fun.Nothing; }
+        bind:      function(f)    { return fun.Nothing; }
     });
 
     // We map the javascript values undefined and null
@@ -777,10 +797,12 @@ fun.product = function(ns) {
         return fun.Maybe.imp({
             isNothing: function()     { return false; },
             // instance Functor where
-            fmap:      function(f)    { return Maybe(f(val)); },
+            fmap:      function(f)    { return fun.Just(f(val)); },
             // instance Monad where
-            ret:       function(a)    { return Maybe(a); },
-            bind:      function(a, f) { return Maybe(f(a)); }
+            ret:       function(a)    { return fun.Just(a); },
+            // HACK: don't expect client code to return a Maybe value,
+            //       just wrap it for them
+            bind:      function(f)    { return Maybe(f(val)); }
         });
     };
 
@@ -916,6 +938,18 @@ fun.any = function (f, xs) {
 //+ all :: (a -> Boolean) -> [a] -> Boolean
 fun.all = function (f, xs) {
     return xs.every(f);
+}.autoCurry();
+
+fun.Iter = fun.Iface.parse("done next");
+
+//+ iterate :: (a -> a) -> a -> [a]
+//! Returns a LazyList of repeated applications of f to x
+fun.iterate = function(f, x) {
+    return fun.Iter.imp({
+        val:  function()  { return x; },
+        next: function() { return fun.iterate(f, f(x)); },
+        done: function() { return false; }
+    });
 }.autoCurry();
 
 //+ find :: (a -> Boolean) -> [a] -> a
@@ -1245,7 +1279,7 @@ fun.import = function(options) {
      * Note that all functions are imported if both 'select' and 'without' are empty.
      */
 	fun.objMap(function(k, v) {
-		if (fun.isNonNullObject(namespace) && k !== "import") {
+		if (fun.isObject(namespace) && k !== "import") {
             if (fun.contains(k, without)) {
                 namespace[k] = undefined;
             } else if (fun.contains(k, select)) {
