@@ -191,6 +191,18 @@ fun.flip = function(f) {
     };
 };
 
+//+ until :: (a -> Boolean) -> (a -> a) -> a -> a
+//! until p f applies f until p holds
+fun.until = function(p, f, x) {
+    if (! fun.isFunction(p)) {
+        throw new Error("(until) arg p must be a function");
+    } else if (! fun.isFunction(f)) {
+        throw new Error("(until) arg f must be a function");
+    } else {
+        return p(x) ? x : fun.until(p, f, f(x));
+    }
+}.autoCurry();
+
 //+ equal :: a -> a -> Boolean
 // Note: type coercion
 fun.equal = function (x, y) {

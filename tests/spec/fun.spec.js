@@ -305,6 +305,18 @@ describe("fun.js", function() {
         });
     });
 
+    describe("until", function() {
+        it(isGlobalizable, function() {
+            expect(isFunction(until)).toBe(true);
+        });
+
+        it("applies f recursively until p holds", function() {
+            var square = function(x) { return x * x; };
+            var nextHigherSquare = function(n) { return until(gt(n), square, 2); };
+            expect(nextHigherSquare(10)).toEqual(16);
+        });
+    });
+
     describe("If", function() {
         it(isGlobalizable, function() {
             expect(isFunction(If)).toBe(true);
