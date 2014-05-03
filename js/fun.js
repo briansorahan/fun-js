@@ -49,22 +49,24 @@ fun.isString = function(obj) {
     return typeof obj === "string";
 };
 
-//+ isObject :: _ -> Boolean
-function isObject(obj) {
-    return ((typeof obj === "object") && (! fun.isArray(obj)));
-};
-
 //+ isFunction :: _ -> Boolean
 fun.isFunction = function(f) {
     return typeof f === "function";
 };
 
-//+ isObject :: _ -> Boolean
-fun.isObject = function(obj) {
-    return obj !== undefined
-        && obj !== null
-        && isObject(obj);
-};
+(function() {
+    //+ isObject :: _ -> Boolean
+    function isObject(obj) {
+        return ((typeof obj === "object") && (! fun.isArray(obj)));
+    };
+
+    //+ isObject :: _ -> Boolean
+    fun.isObject = function(obj) {
+        return obj !== undefined
+            && obj !== null
+            && isObject(obj);
+    };
+})();
 
 //+ isNumber :: _ -> Boolean
 fun.isNumber = function(n) {
