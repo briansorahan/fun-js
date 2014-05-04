@@ -239,7 +239,9 @@ describe("fun.js", function() {
                 expect(bad).toThrow();
             });
         });
+    });
 
+    describe("Control", function() {
         describe("Case", function() {
             it(isGlobalizable, function() {
                 expect(isFunction(Case)).toBe(true);
@@ -304,9 +306,19 @@ describe("fun.js", function() {
                 it("provides an Otherwise method as a catch-all", function() {
                     expect(f(null)).toEqual("otherwise");
                 });
+            }); // Of
+        }); // Case
+
+        describe("Match", function() {
+            it("returns a function that takes a value to match against", function() {
+                expect(isFunction(Match())).toBe(true);
+                expect(Match().length).toEqual(1);
             });
-        });
-    });
+
+            it("provides the same matching semantics as Case.Of.Otherwise", function() {
+            });
+        }); // Match
+    }); // Control
 
     describe("id", function() {
 		it(isGlobalizable, function() {
@@ -320,16 +332,6 @@ describe("fun.js", function() {
 		it("only works with a single argument", function() {
 			expect(id(5, 6)).toEqual(5);
 		});
-    });
-
-    describe("echo", function() {
-        it(isGlobalizable, function() {
-            expect(isFunction(echo)).toBe(true);
-        });
-
-        it("returns a function that echoes the value you pass in", function() {
-            expect(echo(4)()).toEqual(4);
-        });
     });
 
     describe("until", function() {
@@ -361,7 +363,8 @@ describe("fun.js", function() {
         });
 
         describe("Then", function() {
-            it("returns an Object with a 'Else' method", function() {
+            it("returns an Object with Elif and Else methods", function() {
+                expect(isFunction(If(true).Then(null).Elif)).toBe(true);
                 expect(isFunction(If(true).Then(null).Else)).toBe(true);
             });
 
@@ -375,6 +378,14 @@ describe("fun.js", function() {
                 expect(isFunction(If(true).Then("foo").Else)).toBe(true);
             });
 
+            describe("Elif", function() {
+                it("behaves exactly like If", function() {
+                    var val = If(false).Then("foo")
+                            .Elif(true).Then("bar")
+                            .Else("baz");
+                    expect(val).toEqual("bar");
+                });
+            });
 
             describe("Else", function() {
                 it("will call a Function, or just return the given value", function() {
@@ -1845,6 +1856,38 @@ describe("fun.js", function() {
     	it("functions exactly like the builtin Math.pow", function() {
     	    expect(pow2(4)).toEqual(Math.pow(4, 2));
     	});
+    });
+
+    describe("rem", function() {
+    	it(isGlobalizable, function() {
+    	    expect(typeof rem).toEqual('function');
+    	});
+
+        it("throws if not passed two integers", function() {
+            function bad() { rem(4.5, 2); };
+            expect(bad).toThrow();
+        });
+
+        it("computes the remainder of m/n when you do rem(m, n)", function() {
+            expect(rem(5, 2)).toEqual(1);
+            expect(rem(2, 5)).toEqual(0);
+            expect(rem(7, 7)).toEqual(0);
+        });
+    });
+
+    describe("even", function() {
+    	it(isGlobalizable, function() {
+    	    expect(isFunction(even)).toBe(true);
+    	});
+
+        it("returns false for floats", function() {
+            expect(even(3.14)).toBe(false);
+        });
+
+        it("determines if integers are even", function() {
+            expect(even(4)).toBe(true);
+            expect(even(5)).toBe(false);
+        });
     });
 
     describe("sum", function() {

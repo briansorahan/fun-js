@@ -13,10 +13,6 @@ fun.id = function(x) {
     return x;
 };
 
-fun.echo = function(x) {
-    return function() { return x; };
-};
-
 fun.arg = function(n) {
     return function() {
         return arguments[n];
@@ -54,19 +50,13 @@ fun.isFunction = function(f) {
     return typeof f === "function";
 };
 
-(function() {
-    //+ isObject :: _ -> Boolean
-    function isObject(obj) {
-        return ((typeof obj === "object") && (! fun.isArray(obj)));
-    };
-
-    //+ isObject :: _ -> Boolean
-    fun.isObject = function(obj) {
-        return obj !== undefined
-            && obj !== null
-            && isObject(obj);
-    };
-})();
+//+ isObject :: _ -> Boolean
+fun.isObject = function(obj) {
+    return obj !== undefined
+        && obj !== null
+        && (! fun.isArray(obj))
+        && (typeof obj === "object");
+};
 
 //+ isNumber :: _ -> Boolean
 fun.isNumber = function(n) {
@@ -92,8 +82,18 @@ fun.isRegexp = function(obj) {
         && fun.isFunction(obj.exec);
 };
 
+//+ valueOf :: _ -> _
+//! If val is a function, call it, otherwise return it.
+fun.valueOf = function(val) {
+    if (fun.isFunction(val))
+        return val();
+    else
+        return val;
+};
+
 //+ If   :: Boolean  -> Then
-//+ Then :: Function -> Else
+//+ Then :: Function -> {Elif|Else}
+//+ Elif :: Function -> Else
 //+ Else :: Function -> _
 fun.If = function(p) {
     var Then = function(condition) {
@@ -118,15 +118,6 @@ fun.If = function(p) {
     return {
         Then: Then(p)
     };
-};
-
-//+ valueOf :: _ -> _
-//! If val is a function, call it, otherwise return it.
-fun.valueOf = function(val) {
-    if (fun.isFunction(val))
-        return val();
-    else
-        return val;
 };
 
 //- from wu.js <http://fitzgen.github.com/wu.js/>
@@ -433,6 +424,27 @@ fun.pow = function(exponent, base) {
     return Math.pow(base, exponent);
 }.autoCurry();
 
+//+ rem :: Number -> Number -> Number
+//! computes remainder of m / n
+fun.rem = function(m, n) {
+    if (! (fun.isInteger(m) && fun.isInteger(n))) {
+        throw new Error("rem expects integers");
+    }
+    if (m <= n)
+        return 0;
+    else
+        return m - (n * Math.floor(m / n));
+};
+
+fun.even = function(n) {
+    if (! fun.isInteger(n))
+        return false;
+    else if (fun.rem(n, 2) == 0)
+        return true;
+    else
+        return false;
+};
+
 //+ sum :: [Number] -> Number
 fun.sum = function(ns) {
     return ns.reduce(function(acc, n) {
@@ -680,14 +692,14 @@ fun.product = function(ns) {
                 return true;
             } else if (fun.isArray(pattern) && fun.strictDeepEqual(pattern, val)) {
                 return true;
-            } else if (fun.isObject(val)) {
-                if (pattern === Object) {
-                    return true;
-                } else if (fun.isObject(pattern) && fun.strictDeepEqual(pattern, val)) {
-                    return true;
-                } else {
-                    return false;
-                }
+            } else {
+                return false;
+            }
+        } else if (fun.isObject(val)) {
+            if (pattern === Object) {
+                return true;
+            } else if (fun.isObject(pattern) && fun.strictDeepEqual(pattern, val)) {
+                return true;
             } else {
                 return false;
             }
@@ -728,6 +740,34 @@ fun.product = function(ns) {
             Of: Of(Case.Fail)
         };
     };
+
+    fun.Match = function() {
+        var args = Array.prototype.slice.call(arguments),
+            nargs = args.length;
+
+        if (! fun.even(args.length))
+            throw new Error("all patterns in a Match must have a corresponding expression");
+
+        function TestCase(val, patterns) {
+            var pattern = patterns[0], expr = patterns[1];
+
+            if (CaseMatch(pattern, val))
+                return fun.valueOf(expr);
+            else if (patterns.length === 0)
+                return fun.Match.Fail;
+            else
+                return TestCase(val,
+                                fun.head(patterns),
+                                fun.head(fun.tail(patterns)),
+                                fun.drop(2, patterns));
+        }
+
+        return function(val) {
+            return nargs === 0 ? fun.Match.Fail : TestCase(val, args);
+        };
+    };
+
+    fun.Match.Fail = {};
 
     // Pair
     var Pair = function(x, y) {
@@ -1167,30 +1207,10 @@ fun.span = function(p, xs) {
     }
 }.autoCurry();
 
-// TODO
-//+ objDiff :: _ -> _ -> Object
-// fun.objDiff = function(a, b) {
-// };
-
-////////////////////////////////////////
-// String
-////////////////////////////////////////
-
 //+ strcat :: String -> String -> String
 fun.strcat = function(s, t) {
     return t.concat(s);
 }.autoCurry();
-
-
-//+ contains :: String -> String -> Boolean
-// fun.contains = function(s, t) {
-//     return t.contains(s);
-// }.autoCurry();
-
-//+ endsWith :: String -> String -> Boolean
-// fun.endsWith = function(search, source) {
-//     return source.endsWith(search);
-// }.autoCurry();
 
 //+ match :: RegExp -> String -> Boolean
 fun.match = function(regex, string) {
