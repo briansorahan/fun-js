@@ -82,15 +82,6 @@ fun.isRegexp = function(obj) {
         && fun.isFunction(obj.exec);
 };
 
-//+ valueOf :: _ -> _
-//! If val is a function, call it, otherwise return it.
-fun.valueOf = function(val) {
-    if (fun.isFunction(val))
-        return val();
-    else
-        return val;
-};
-
 //+ If   :: Boolean  -> Then
 //+ Then :: Function -> {Elif|Else}
 //+ Elif :: Function -> Else
@@ -105,11 +96,7 @@ fun.If = function(p) {
                     };
                 },
                 Else: function(g) {
-                    if (condition) {
-                        return fun.valueOf(f);
-                    } else {
-                        return fun.valueOf(g);
-                    }
+                    return condition ? f : g;
                 }
             };
         };
@@ -299,6 +286,14 @@ fun.instanceOf = function(constructor, obj) {
     return obj instanceof constructor;
 }.autoCurry();
 
+fun.typeOf = function(T, val) {
+    if (T.toLowerCase() === "object") {
+        return fun.isObject(val);
+    } else {
+        return typeof val === T;
+    }
+}.autoCurry();
+
 //+ isa :: Iface -> Object -> Boolean
 fun.isa = function(type, obj) {
     return type.check(obj);
@@ -407,14 +402,17 @@ fun.max = function(ns) {
     return fun.isArray(ns) ? Math.max.apply(null, ns) : undefined;
 };
 
+//+ divide :: Number -> Number -> Number
 fun.add = function(x, y) {
     return x + y;
 }.autoCurry();
 
+//+ divide :: Number -> Number -> Number
 fun.multiply = function(x, y) {
     return x * y;
 }.autoCurry();
 
+//+ divide :: Number -> Number -> Number
 fun.divide = function(dividend, divisor) {
     return dividend / divisor;
 }.autoCurry();
@@ -430,12 +428,10 @@ fun.rem = function(m, n) {
     if (! (fun.isInteger(m) && fun.isInteger(n))) {
         throw new Error("rem expects integers");
     }
-    if (m <= n)
-        return 0;
-    else
-        return m - (n * Math.floor(m / n));
+    return m < n ? m : (m == n ? 0 : m - (n * Math.floor(m / n)));
 };
 
+//+ even :: Integer -> Boolean
 fun.even = function(n) {
     if (! fun.isInteger(n))
         return false;
@@ -444,6 +440,8 @@ fun.even = function(n) {
     else
         return false;
 };
+
+fun.odd = fun.compose(fun.not, fun.even);
 
 //+ sum :: [Number] -> Number
 fun.sum = function(ns) {
@@ -677,93 +675,58 @@ fun.product = function(ns) {
      * For Array and Object use instanceof, then strictDeepEqual.
      * For Infinity, null, undefined use identical.
      */
-    function CaseMatch(pattern, val) {
-        if (pattern instanceof Iface && fun.isa(pattern, val)) {
-            return true;
-        } else if (fun.isString(val)) {
-            if (pattern === String) 
-                return typeof val === "string";
-            else
-                return fun.isRegexp(pattern) ? pattern.test(val) : pattern === val;
-        } else if (fun.isNumber(val)) {
-            return pattern === val;
-        } else if (fun.isArray(val)) {
-            if (pattern === Array) {
-                return true;
-            } else if (fun.isArray(pattern) && fun.strictDeepEqual(pattern, val)) {
-                return true;
-            } else {
-                return false;
-            }
-        } else if (fun.isObject(val)) {
-            if (pattern === Object) {
-                return true;
-            } else if (fun.isObject(pattern) && fun.strictDeepEqual(pattern, val)) {
-                return true;
-            } else {
-                return false;
-            }
+    fun.CaseMatch = function(pattern, val) {
+        if (pattern instanceof Iface) {
+            return fun.isa(pattern, val);
+        } else if (fun.isFunction(pattern)) {
+            return pattern(val);
+        } else if (fun.isRegexp(pattern) && fun.isString(val)) {
+            return pattern.test(val);
+        } else if (fun.isArray(val) && pattern !== Array) {
+            return fun.strictDeepEqual(pattern, val);
+        } else if (fun.isObject(pattern) && pattern !== Object) {
+            return fun.strictDeepEqual(pattern, val);
         } else if (fun.isInfinity(val)) {
             return fun.isInfinity(pattern);
         } else {
             return (typeof val === pattern)
-                || ((typeof pattern === "function") && (val instanceof pattern))
+                || (fun.isFunction(pattern) && (val instanceof pattern))
                 || val === pattern
                 || val == pattern;
         }
     };
 
-    var Case = {
-        Fail: {}
-    };
+    fun.Otherwise = {};
 
-    fun.Case = function(val) {
-        function Of(result) {
-            return function(pattern, f) {
-                if (CaseMatch(pattern, val) && result === Case.Fail) {
-                    result = fun.valueOf(f);
-                }
-                return {
-                    Of: Of(result),
-                    Otherwise: function(g) {
-                        if (result !== Case.Fail) {
-                            return result;
-                        } else {
-                            return fun.valueOf(g);
-                        }
-                    }
-                };
-            };
-        }
-
-        return {
-            Of: Of(Case.Fail)
-        };
-    };
-
+    /*
+     * see
+     * http://stackoverflow.com/questions/203739/why-does-instanceof-return-false-for-some-literals
+     * for a good description of some of the things you need to be careful of
+     * when trying to match using instanceOf
+     */
     fun.Match = function() {
         var args = Array.prototype.slice.call(arguments),
             nargs = args.length;
 
-        if (! fun.even(args.length))
+        if (! fun.even(nargs))
             throw new Error("all patterns in a Match must have a corresponding expression");
+        else
+            console.log(nargs);
 
         function TestCase(val, patterns) {
             var pattern = patterns[0], expr = patterns[1];
 
-            if (CaseMatch(pattern, val))
-                return fun.valueOf(expr);
-            else if (patterns.length === 0)
+            if (pattern === fun.Otherwise || fun.CaseMatch(pattern, val)) {
+                return expr;
+            } else if (patterns.length < 2) {
                 return fun.Match.Fail;
-            else
-                return TestCase(val,
-                                fun.head(patterns),
-                                fun.head(fun.tail(patterns)),
-                                fun.drop(2, patterns));
+            } else {
+                return TestCase(val, fun.drop(2, patterns));
+            }
         }
 
         return function(val) {
-            return nargs === 0 ? fun.Match.Fail : TestCase(val, args);
+            return nargs < 2 ? fun.Match.Fail : TestCase(val, args);
         };
     };
 
@@ -837,6 +800,7 @@ fun.product = function(ns) {
     // to Nothing.
     fun.Just = function(val) {
         return fun.Maybe.imp({
+            val:       function()     { return val; },
             isNothing: function()     { return false; },
             // instance Functor where
             fmap:      function(f)    { return fun.Just(f(val)); },
@@ -844,7 +808,7 @@ fun.product = function(ns) {
             ret:       function(a)    { return fun.Just(a); },
             // HACK: don't expect client code to return a Maybe value,
             //       just wrap it for them
-            bind:      function(f)    { return Maybe(f(val)); }
+            bind:      function(f)    { return f(val); }
         });
     };
 
@@ -853,7 +817,9 @@ fun.product = function(ns) {
     //  If the Maybe is Nothing it returns the default value.
     //  If the Maybe is Just a, return a.
     fun.fromMaybe = function(d, maybe) {
-        return fun.If(maybe.isNothing()).Then(d).Else(maybe.ret());
+        return fun.If(maybe.isNothing())
+            .Then(d)
+            .Else(maybe.val());
     }.autoCurry();
 
     //+ data Either a b = Left a | Right b
@@ -915,7 +881,10 @@ fun.product = function(ns) {
 
 //+ fmap :: (a -> b) -> f a -> f b
 fun.fmap = function(f, functor) {
-    return fun.isa(fun.Functor, functor) ? functor.fmap(f) : undefined;
+    if (! fun.isa(fun.Functor, functor))
+        throw new Error("fmap requires a Functor as its 2nd argument");
+    else
+        return fun.isa(fun.Functor, functor) ? functor.fmap(f) : undefined;
 }.autoCurry();
 
 ////////////////////////////////////////
@@ -1318,7 +1287,10 @@ fun.import = function(options) {
 };
 
 if (fun.isNodeJS()) {
-    module.exports = fun;    
+    // any node.js specific stuff we may want to include
+    var node_fun = require("./node-fun.js");
+    node_fun.augment(fun);
+    module.exports = fun;
 } else if (fun.isBrowser()) {
     window.fun = fun;
 }

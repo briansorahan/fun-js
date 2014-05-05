@@ -140,6 +140,127 @@ describe("fun.js", function() {
                 expect(isa(Functor, Just(1))).toBe(true);
             });
 
+            /*
+             * see http://www.haskell.org/haskellwiki/All_About_Monads
+             * for the sheep example this is based on
+             * each Sheep is possible a clone, so this is why father and
+             * mother return Maybe Sheep instead of Sheep
+             */
+            it("is a Monad", function() {
+                // type Sheep
+                //     where father :: Sheep -> Maybe Sheep
+                //           mother :: Sheep -> Maybe Sheep
+                var Sheep = Iface.parse("father mother");
+                // Clone type constructor
+                Sheep.Clone = function() {
+                    return Sheep.imp({
+                        father:    function() { return Nothing; },
+                        mother:    function() { return Nothing; }
+                    });
+                };
+                // Natural type constructor
+                Sheep.Natural = function(mother, father) {
+                    return Sheep.imp({
+                        father: function() { return Just(father); },
+                        mother: function() { return Just(mother); }
+                    });
+                };
+                // father :: Sheep -> Maybe Sheep
+                var father = function(s) { return s.father(); };
+                // mother :: Sheep -> Maybe Sheep
+                var mother = function(s) { return s.mother(); };
+                // maternalGrandfather :: Sheep -> Maybe Sheep
+                // version 1
+                var maternalGrandfather1 = function(s) {
+                    var m = mother(s);
+                    return m.isNothing() ? Nothing : father(m);
+                };
+                // mothersPaternalGrandfather :: Sheep -> Maybe Sheep
+                // version 1
+                var mothersPaternalGrandfather1 = function(s) {
+                    var m = mother(s);
+
+                    if (m.isNothing()) {
+                        return Nothing;
+                    } else {
+                        var gf = father(fromMaybe(undefined, m));
+
+                        if (gf.isNothing()) {
+                            return Nothing;
+                        } else {
+                            return father(fromMaybe(undefined, gf));
+                        }
+                    }
+                };
+                //
+                // a family tree descended from clones where S is the child
+                // 
+                //                                       S
+                //                                       |
+                //                 --------------------------------------------
+                //                 |                                          |
+                //                M S                                        F S
+                //                 |                                          |
+                //          ---------------------                     ---------------------
+                //          |                   |                     |                   |
+                //        M M S               F M S                 M F S               F F S
+                //          |                   |                     |                   |
+                //     -----------          ----------            ----------         -----------
+                //     |         |          |        |            |        |         |         |
+                //  M M M S   F M M S    M F M S  F F M S      M M F S  F M F S   M F F S   F F F S
+                //
+                var MMMS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var FMMS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var MFMS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var FFMS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var MMFS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var FMFS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var MFFS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+                var FFFS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
+
+                var MMS  = Sheep.Natural(MMMS, FMMS);
+                var FMS  = Sheep.Natural(MFMS, FFMS);
+                var MFS  = Sheep.Natural(MMFS, FMFS);
+                var FFS  = Sheep.Natural(MFFS, FFFS);
+
+                var MS   = Sheep.Natural(MMS, FMS);
+                var FS   = Sheep.Natural(FMS, FFS);
+                
+                var S    = Sheep.Natural(MS, FS);
+
+                // expectSheep :: Sheep -> Maybe Sheep -> Boolean
+                function expectSheep(sheep, maybe) {
+                    if (maybe === Nothing) {
+                        expect(false).toBe(true);
+                        return Nothing;
+                    } else {
+                        return maybe.bind(function(s) {
+                            expect(s === sheep).toBe(true);
+                            return Just(s);
+                        });
+                    }
+                }
+
+                expectSheep(MS,    mother(S));
+                expectSheep(FFMS,  mothersPaternalGrandfather1(S));
+
+                // maternalGrandfather :: Sheep -> Maybe Sheep
+                // version 2
+                var maternalGrandfather2 = function(s) {
+                    return Just(s).bind(mother).bind(father);
+                };
+
+                // mothersPaternalGrandfather :: Sheep -> Maybe Sheep
+                // version 2
+                // way better!!
+                var mothersPaternalGrandfather2 = function(s) {
+                    return Just(s).bind(mother).bind(father).bind(father);
+                };
+
+                expectSheep(FMS,   maternalGrandfather2(S));
+                expectSheep(FFMS,  mothersPaternalGrandfather2(S));
+            });
+
             it("returns Nothing when trying to fmap over Nothing", function() {
                 expect(fmap(function() {}, Nothing)).toEqual(Nothing);
             });
@@ -242,80 +363,113 @@ describe("fun.js", function() {
     });
 
     describe("Control", function() {
-        describe("Case", function() {
-            it(isGlobalizable, function() {
-                expect(isFunction(Case)).toBe(true);
+        describe("CaseMatch", function() {
+            it("matches numbers", function() {
+                expect(CaseMatch(isNumber, 3)).toBe(true);
+                expect(CaseMatch(isNumber, Infinity)).toBe(false);
+                expect(CaseMatch(1, 1)).toBe(true);
+                expect(CaseMatch(1, 2)).toBe(false);
             });
 
-            it("returns an object with an Of method", function() {
-                expect(isFunction(Case("foo").Of)).toBe(true);
+            it("matches strings", function() {
+                expect(CaseMatch("foo", "foo")).toBe(true);
+                expect(CaseMatch("foo", "bar")).toBe(false);
+                expect(CaseMatch(isString, "foo")).toBe(true);
+                expect(CaseMatch(isString, String)).toBe(false);
             });
 
-            describe("Of", function() {
-                var f = function(val) {
-                    return Case(val)
-                        .Of("foo", function() {
-                            expect(val).toEqual("foo");
-                            return "foo_matched";
-                        }).Of(String, function() {
-                            expect(typeof val === "string").toBe(true);
-                            return "string_matched";
-                        }).Of([1,2,3], function() {
-                            expect(val).toEqual([1,2,3]);
-                            return "123_matched";
-                        }).Of(Array, function() {
-                            expect(isArray(val)).toBe(true);
-                            return "array_matched";
-                        }).Of(Person, function() {
-                            expect(isa(Person)(val)).toBe(true);
-                            return "person_matched";
-                        }).Otherwise(function() {
-                            return "otherwise";
-                        });
+            it("matches booleans", function() {
+                expect(CaseMatch(typeOf("boolean"), true)).toBe(true);
+                expect(CaseMatch(typeOf("boolean"), false)).toBe(true);
+                expect(CaseMatch(typeOf("boolean"), "boolean")).toBe(false);
+                expect(CaseMatch(typeOf("boolean"), null)).toBe(false);
+                expect(CaseMatch(typeOf("boolean"), undefined)).toBe(false);
+            });
+
+            it("matches objects", function() {
+                expect(CaseMatch(typeOf("object"), undefined)).toBe(false);
+                expect(CaseMatch(typeOf("object"), null)).toBe(false);
+                expect(CaseMatch(typeOf("object"), function() {})).toBe(false);
+                expect(CaseMatch(typeOf("object"), [1,2,3])).toBe(false);
+                expect(CaseMatch(typeOf("object"), new Array([1,2,3]))).toBe(false);
+                expect(CaseMatch(typeOf("object"), { foo: "bar" })).toBe(true);
+                expect(CaseMatch(typeOf("object"), Object.create({ foo: "bar" }))).toBe(true);
+            });
+
+            it("matches arrays", function() {
+                expect(CaseMatch([1,2,3], [1,2,3])).toBe(true);
+                expect(CaseMatch(isArray, [1,2,3])).toBe(true);
+                expect(CaseMatch(typeOf("string"), [1,2,3])).toBe(false);
+                expect(CaseMatch(typeOf("object"), [1,2,3])).toBe(false);
+            });
+
+            it("matches functions by feeding them val and testing their return value", function() {
+                expect(CaseMatch(isFunction, function() {})).toBe(true);
+                expect(CaseMatch(isFunction, { foo : "bar" })).toBe(false);
+                expect(CaseMatch(even, 8)).toBe(true);
+                expect(CaseMatch(even, 9)).toBe(false);
+            });
+
+            it("matches an Iface by checking implementation", function() {
+                var incomplete = {
+                    greets: function(guest) {}
                 };
-
-                it("is chainable", function() {
-                    var c = Case("foo")
-                             .Of("bar", function() {})
-                             .Of("glorp", function() {});
-
-                    expect(isFunction(c.Of)).toBe(true);
-                });
-
-                describe("tries to DWIM", function() {
-                    it("detects Array as the first param", function() {
-                        expect(f([1,2,3])).toEqual("123_matched");
-                        expect(f([1,2,3,4])).toEqual("array_matched");
-                    });
-
-                    it("detects String as the first param", function() {
-                        expect(f("foo")).toEqual("foo_matched");
-                        expect(f("bar")).toEqual("string_matched");
-                    });
-
-                    it("matches Iface using isa", function() {
-                        var p = {
-                            greets: function(guest) {},
-                            stops:  function(evil)  {}
-                        };
-
-                        expect(f(p)).toEqual("person_matched");
-                    });
-                });
-
-                it("provides an Otherwise method as a catch-all", function() {
-                    expect(f(null)).toEqual("otherwise");
-                });
-            }); // Of
-        }); // Case
+                var complete = {
+                    greets: function(guest) {},
+                    stops: function(evil) {}
+                };
+                expect(CaseMatch(Person, incomplete)).toBe(false);
+                expect(CaseMatch(Person, complete)).toBe(true);
+            });
+        });
 
         describe("Match", function() {
-            it("returns a function that takes a value to match against", function() {
-                expect(isFunction(Match())).toBe(true);
-                expect(Match().length).toEqual(1);
+            var f = Match("foo",                  "foo_matched",
+                          typeOf("string"),       "string_matched",
+                          [1,2,3],                "123_matched",
+                          isArray,                "array_matched",
+                          Person,                 "person_matched",
+                          Otherwise,              "otherwise");
+
+            it(isGlobalizable, function() {
+                expect(isFunction(Match)).toBe(true);
             });
 
-            it("provides the same matching semantics as Case.Of.Otherwise", function() {
+            it("throws if not given an even number of arguments", function() {
+                function bad() { Match(1); }
+                expect(bad).toThrow();
+            });
+
+            describe("tries to DWIM", function() {
+                it("detects Array as the first param", function() {
+                    expect(f([1,2,3])).toEqual("123_matched");
+                    expect(f([1,2,3,4])).toEqual("array_matched");
+                });
+
+                it("detects String as the first param", function() {
+                    expect(f("foo")).toEqual("foo_matched");
+                    expect(f("bar")).toEqual("string_matched");
+                });
+
+                it("matches Iface using isa", function() {
+                    var p = {
+                        greets: function(guest) {},
+                        stops:  function(evil)  {}
+                    };
+
+                    expect(f(p)).toEqual("person_matched");
+                });
+
+                it("calls the pattern with the supplied value if the pattern is a function", function() {
+                    var msg = Match(even,      "it's even",
+                                    odd,       "it's odd");
+                    expect(msg(4)).toEqual("it's even");
+                    expect(msg(5)).toEqual("it's odd");
+                });
+            });
+
+            it("provides an Otherwise method as a catch-all", function() {
+                expect(f(null)).toEqual("otherwise");
             });
         }); // Match
     }); // Control
@@ -366,12 +520,6 @@ describe("fun.js", function() {
             it("returns an Object with Elif and Else methods", function() {
                 expect(isFunction(If(true).Then(null).Elif)).toBe(true);
                 expect(isFunction(If(true).Then(null).Else)).toBe(true);
-            });
-
-            it("will call a Function, or just return the given value", function() {
-                var val1 = If(true).Then(function() { return 3; }).Else("bar");
-                var val2 = If(true).Then(3).Else("foo");
-                expect(val1).toEqual(val2);
             });
 
             it("only returns the value you expect if you chain an Else on the end", function() {
@@ -624,8 +772,9 @@ describe("fun.js", function() {
     });
 
     describe("fmap", function() {
-        it("returns undefined if the functor does not have an fmap method", function() {
-            expect(fmap(function() {}, Object)).not.toBeDefined();
+        it("throws if the functor does not have an fmap method", function() {
+            function bad() { fmap(function() {}, Object); }
+            expect(bad).toThrow();
         });
 
         // FIXME
@@ -1864,13 +2013,13 @@ describe("fun.js", function() {
     	});
 
         it("throws if not passed two integers", function() {
-            function bad() { rem(4.5, 2); };
+            function bad() { rem(4.5, 2); }
             expect(bad).toThrow();
         });
 
         it("computes the remainder of m/n when you do rem(m, n)", function() {
             expect(rem(5, 2)).toEqual(1);
-            expect(rem(2, 5)).toEqual(0);
+            expect(rem(2, 5)).toEqual(2);
             expect(rem(7, 7)).toEqual(0);
         });
     });
@@ -1910,10 +2059,6 @@ describe("fun.js", function() {
         });
     });
 
-	////////////////////////////////////////
-	// String
-	////////////////////////////////////////
-
     describe("strcat", function() {
 		var base = "cat";
 		var catcat = strcat(base);
@@ -1933,49 +2078,6 @@ describe("fun.js", function() {
 			expect(catcat(pre)).toEqual(pre.concat(base)); // Thundercat
 		});
     });
-
-    // not yet implemented in node v0.10.0 [bps]
-    // describe("contains", function() {
-    // 	var substring = "cat";
-    // 	var hascat = contains(substring);
-
-    // 	it(isGlobalizable, function() {
-    // 	    expect(typeof contains).toEqual('function');
-    // 	});
-
-    // 	it(isCurriable, function() {
-    // 	    expect(typeof hascat).toEqual('function');
-    // 	});
-
-    // 	it("functions exactly like String.contains", function() {
-    // 	    var does = "catamorphism";
-    // 	    var doesnt = "anamorphism";
-
-    // 	    expect(hascat(does)).toEqual(does.contains(substring));
-    // 	    expect(hascat(doesnt)).toEqual(doesnt.contains(substring));
-    // 	});
-    // });
-
-    // describe("endsWith", function() {
-    // 	var ending = "cat";
-    // 	var endsWithCat = endsWith(ending);
-
-    // 	it(isGlobalizable, function() {
-    // 	    expect(typeof endsWith).toEqual('function');
-    // 	});
-
-    // 	it(isCurriable, function() {
-    // 	    expect(typeof endsWithCat).toEqual('function');
-    // 	});
-
-    // 	it("functions exactly like String.endsWith", function() {
-    // 	    var does = "Thundercat";
-    // 	    var doesnt = "Lion-O";
-
-    // 	    expect(endsWithCat(does)).toEqual(does.endsWith(ending));
-    // 	    expect(endsWithCat(doesnt)).toEqual(doesnt.endsWith(ending));
-    // 	});
-    // });
 
     describe("indexOf (for String)", function() {
 		var searchString = "blabber";
