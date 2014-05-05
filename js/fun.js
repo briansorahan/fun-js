@@ -825,7 +825,7 @@ fun.product = function(ns) {
     //+ data Either a b = Left a | Right b
 
     var Either = {
-        Iface: Iface.parse("val isLeft fmap/1"),
+        Iface: Iface.parse("val isLeft fmap/1 bind/1"),
         Undefined: {}
     };
 
@@ -834,7 +834,8 @@ fun.product = function(ns) {
         var self = {
             val:    function()  { return val; },
             isLeft: function()  { return true; },
-            fmap:   function(f) { return self; }
+            fmap:   function(f) { return self; },
+            bind:   function(f) { return fun.Left(val); }
         };
 
         return self;
@@ -844,7 +845,8 @@ fun.product = function(ns) {
         return {
             val:    function()  { return val; },
             isLeft: function()  { return false; },
-            fmap:   function(f) { return fun.Right(f(val)); }
+            fmap:   function(f) { return fun.Right(f(val)); },
+            bind:   function(f) { return f(val); }
         };
     };
 
@@ -1229,6 +1231,24 @@ fun.trimRight = function(string) {
 //+ trimLeft :: String -> String
 fun.trimLeft = function(string) {
     return string.trimLeft();
+};
+
+//+ parseJSON :: Either Error {Object|Array}
+fun.parseJSON = function(s) {
+    try {
+        return fun.Right(JSON.parse(s));
+    } catch (err) {
+        return fun.Left(err);
+    }
+};
+
+//+ stringify :: Either Error String
+fun.stringify = function(val) {
+    try {
+        return fun.Right(JSON.stringify(val));
+    } catch (err) {
+        return fun.Left(err);
+    }
 };
 
 fun.isCommonJS = function() {

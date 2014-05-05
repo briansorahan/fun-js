@@ -195,19 +195,19 @@ describe("fun.js", function() {
                 //
                 // a family tree descended from clones where S is the child
                 // 
-                //                                       S
-                //                                       |
-                //                 --------------------------------------------
-                //                 |                                          |
-                //                M S                                        F S
-                //                 |                                          |
-                //          ---------------------                     ---------------------
-                //          |                   |                     |                   |
-                //        M M S               F M S                 M F S               F F S
-                //          |                   |                     |                   |
-                //     -----------          ----------            ----------         -----------
-                //     |         |          |        |            |        |         |         |
-                //  M M M S   F M M S    M F M S  F F M S      M M F S  F M F S   M F F S   F F F S
+                //                                         S
+                //                                         |
+                //                 ------------------------------------------------
+                //                 |                                              |
+                //                M S                                            F S
+                //                 |                                              |
+                //          ---------------------                     -------------------------
+                //          |                   |                     |                       |
+                //        M M S               F M S                 M F S                   F F S
+                //          |                   |                     |                       |
+                //     -----------          ----------            ----------             -----------
+                //     |         |          |        |            |        |             |         |
+                //  M M M S   F M M S    M F M S  F F M S      M M F S  F M F S       M F F S   F F F S
                 //
                 var MMMS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
                 var FMMS = Sheep.Natural(Sheep.Clone(), Sheep.Clone());
@@ -2355,5 +2355,10 @@ describe("fun.js", function() {
             expect(typeof myglobal.compose).toEqual("function");
         });
     });
+
+    // if (isNodeJS()) {
+    //     describe("node-fun", function() {
+    //     });
+    // }
 });
 
