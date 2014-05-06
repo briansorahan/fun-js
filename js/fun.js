@@ -630,7 +630,7 @@ fun.product = function(ns) {
      * @return {Object} The object that was provided, if it passes the check method.
      * @throw {TypeError} If the provided object does not implement the interface.
      */
-    Iface.prototype.imp = function(obj) {
+    Iface.prototype.instance = function(obj) {
         if (this.check(obj)) {
             return obj;
         } else {
@@ -787,7 +787,7 @@ fun.product = function(ns) {
         }
     };
 
-    fun.Nothing = fun.Maybe.imp({
+    fun.Nothing = fun.Maybe.instance({
         isNothing: function()     { return true; },
         // instance Functor where
         fmap:      function(f)    { return fun.Nothing; },
@@ -799,7 +799,7 @@ fun.product = function(ns) {
     // We map the javascript values undefined and null
     // to Nothing.
     fun.Just = function(val) {
-        return fun.Maybe.imp({
+        return fun.Maybe.instance({
             val:       function()     { return val; },
             isNothing: function()     { return false; },
             // instance Functor where
@@ -958,7 +958,7 @@ fun.Iter = fun.Iface.parse("done next");
 //+ iterate :: (a -> a) -> a -> [a]
 //! Returns a LazyList of repeated applications of f to x
 fun.iterate = function(f, x) {
-    return fun.Iter.imp({
+    return fun.Iter.instance({
         val:  function()  { return x; },
         next: function() { return fun.iterate(f, f(x)); },
         done: function() { return false; }

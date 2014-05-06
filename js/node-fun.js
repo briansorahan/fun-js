@@ -26,7 +26,7 @@ module.exports.augment = function(fun) {
         client.on("error", function(err) {
         });
 
-        return fun.Http.imp({
+        return fun.Http.instance({
             fmap: function(f) {},
             ret:  function(a) {},
             bind: function(f) {}

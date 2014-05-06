@@ -93,10 +93,10 @@ describe("fun.js", function() {
     describe("Types", function() {
         describe("Functor", function() {
             it("requires fmap/1", function() {
-                expect(isObject(Functor.imp({ fmap: function(f) {} }))).toBe(true);
+                expect(isObject(Functor.instance({ fmap: function(f) {} }))).toBe(true);
 
                 function bad() {
-                    return Functor.imp({ fmap: function(a,b){} });
+                    return Functor.instance({ fmap: function(a,b){} });
                 }
 
                 expect(bad).toThrow();
@@ -108,10 +108,10 @@ describe("fun.js", function() {
                 var m  = { ret: function(a){}, bind: function(f)  {} };
                 var nm = { ret: function(a){}, bind: function(f,g){} };
 
-                expect(isObject(Monad.imp(m))).toBe(true);
+                expect(isObject(Monad.instance(m))).toBe(true);
 
                 function bad() {
-                    return Monad.imp(nm);
+                    return Monad.instance(nm);
                 }
 
                 expect(bad).toThrow();
@@ -153,14 +153,14 @@ describe("fun.js", function() {
                 var Sheep = Iface.parse("father mother");
                 // Clone type constructor
                 Sheep.Clone = function() {
-                    return Sheep.imp({
+                    return Sheep.instance({
                         father:    function() { return Nothing; },
                         mother:    function() { return Nothing; }
                     });
                 };
                 // Natural type constructor
                 Sheep.Natural = function(mother, father) {
-                    return Sheep.imp({
+                    return Sheep.instance({
                         father: function() { return Just(father); },
                         mother: function() { return Just(mother); }
                     });
@@ -352,7 +352,7 @@ describe("fun.js", function() {
 
             it("provides an imp method that throws if an Object does not provide a complete implementation", function() {
                 var bad = function() {
-                    return Animal.imp({
+                    return Animal.instance({
                         breathe: function(stuff) {}
                         // missing 'eats' method
                     });
