@@ -1,4 +1,5 @@
 var http = require("http");
+var EventEmitter = require("events").EventEmitter;
 
 module.exports.augment = function(fun) {
     fun.Http = fun.Iface.parse("fmap/1 ret/1 bind/1");
@@ -7,10 +8,12 @@ module.exports.augment = function(fun) {
 
     fun.Http.Response = fun.Iface.parse("statusCode headers body");
 
-    // Http.request :: Http.Request -> Either Error Http.Response
-    fun.Http.request = function(req) {
+    // httpRequest :: Http.Request -> Promise Either Error Http.Response
+    fun.httpRequest = function(req) {
         if (! fun.isa(fun.Http.Request, req))
             throw new Error("Http.request requires an Http.Request");
+
+        var ev = new EventEmitter();
 
         var reqopts = {
             method: req.method || "GET",
@@ -21,15 +24,20 @@ module.exports.augment = function(fun) {
         };
 
         var client = http.request(reqopts, function(res) {
+            // trigger error or response
         });
 
         client.on("error", function(err) {
+            // trigger error
         });
 
         return fun.Http.instance({
             fmap: function(f) {},
             ret:  function(a) {},
-            bind: function(f) {}
+            bind: function(f) {
+                ev.on("error",    fun.compose(f, fun.Left));
+                ev.on("response", fun.compose(f, fun.Right));
+            }
         });
     };
 };

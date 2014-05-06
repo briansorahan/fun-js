@@ -1445,8 +1445,10 @@ describe("fun.js", function() {
 		});
 
         it("returns undefined if the first arg is not a function or the second arg is not an Array", function() {
-            expect(dropWhile("weird", ["foo", "bar"])).not.toBeDefined();
-            expect(dropWhile(3, "foobar")).not.toBeDefined();
+            function bad1() { dropWhile("weird", ["foo", "bar"]); }
+            function bad2() { dropWhile(function(){}, "foo"); }
+            expect(bad1).toThrow();
+            expect(bad2).toThrow();
         });
 
         it("returns the suffix remaining after takeWhile(n, xs)", function() {
@@ -1561,38 +1563,51 @@ describe("fun.js", function() {
     	it(isCurriable, function() {
     	    expect(typeof _isArray).toEqual('function');
     	});
-		
+
     	it("functions exactly like the builtin instanceof operator", function() {
     	    expect(_isArray(autechre)).toBe(false);
     	    expect(instanceOf(Object)(autechre)).toBe(true);
     	});
     });
 
-    xdescribe("isa", function() {
-		var isString = isa("string");
-        var isFunction = isa("function");
-        var isObject = isa("object");
+    describe("instance", function() {
+    	it(isGlobalizable, function() {
+    	    expect(isFunction(instance)).toBe(true);
+    	});
 
+        it("determines if an Object implements an each Iface in the provided array", function() {
+            var iface = instance([Functor, Monad], {
+                where: {
+                    fmap:   function(f) {},
+                    ret:    function(a) {},
+                    bind:   function(f) {}
+                }
+            });
+
+            expect(isIface(iface)).toBe(true);
+        });
+
+        it("throws an Error if the object does not fully implement at least one of the provided Iface's", function() {
+            var bad = function() {
+                instance([Functor, Monad], {
+                    where: {
+                        fmap:   function(f) {},
+                        // ret:    function(a) {},
+                        bind:   function(f) {}
+                    }
+                });
+            };
+            expect(bad).toThrow();
+        });
+    });
+
+    describe("isa", function() {
     	it(isGlobalizable, function() {
     	    expect(isFunction(isa)).toBe(true);
     	});
 
-    	it(isCurriable, function() {
-    	    expect(isFunction(isString)).toBe(true);
-    	});
-		
-    	it("functions exactly like the builtin typeof operator", function() {
-    	    expect(isString(null)).toBe(false);
-    	    expect(isString(undefined)).toBe(false);
-    	    expect(isString(1)).toBe(false);
-            expect(isString([])).toBe(false);
-            expect(isString("foo")).toBe(true);
-    	    expect(isObject(autechre)).toBe(true);
-    	});
-
-        it("returns false when testing if null and Array are Objects", function() {
-            expect(isObject(null)).toBe(false);
-            expect(isObject([])).toBe(false);
+        it("determines if an object impelements the given interface", function() {
+            expect(isa(Functor, { fmap: function(f){} })).toBe(true);
         });
     });
 

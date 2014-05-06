@@ -295,8 +295,8 @@ fun.typeOf = function(T, val) {
 }.autoCurry();
 
 //+ isa :: Iface -> Object -> Boolean
-fun.isa = function(type, obj) {
-    return type.check(obj);
+fun.isa = function(iface, obj) {
+    return iface.check(obj);
 }.autoCurry();
 
 //+ isnota :: String -> Object -> Boolean
@@ -626,6 +626,7 @@ fun.product = function(ns) {
 
     /**
      * Create a new implementation of an Iface.
+     *
      * @param {Object} obj - The object that implements the Iface.
      * @return {Object} The object that was provided, if it passes the check method.
      * @throw {TypeError} If the provided object does not implement the interface.
@@ -650,8 +651,36 @@ fun.product = function(ns) {
         return new Iface(desc);
     };
 
+    //+ Iface.parse :: String -> Iface
     fun.Iface.parse = Iface.parse;
+    //+ data IFace.Empty
     fun.Iface.Empty = Iface.Empty;
+    //+ isIface :: Object -> Boolean
+    fun.isIface = fun.instanceOf(Iface);
+
+    //+ instance :: [Iface] -> Iface -> Iface
+    //! Throws an Error if the 2nd param does not implement all
+    //! interfaces provided in the first param.
+    //! If all the interfaces from the first param are implemented properly,
+    //! returns the 2nd param.
+    fun.instance = function(ifaces, obj) {
+        if (fun.not(fun.isArray(ifaces)) || (ifaces.length === 0))
+            throw new Error("instance expects a nonempty Array as first arg");
+        if (! (fun.isObject(obj) && obj.hasOwnProperty("where") && fun.isObject(obj.where)))
+            throw new Error("instance expects Object with a 'where' Object property as second arg");
+
+        ifaces.forEach(function(iface, i) {
+            if (! fun.isIface(iface))
+                throw new Error("instance requires an Array of Iface's");
+
+            if (! iface.check(obj.where)) {
+                throw new Error("object does not implement interface " + i
+                                + " from the first arg to instance");
+            }
+        });
+
+        return new Iface(obj);
+    };
 
     //+ class Functor f where
     //+ fmap :: (a -> b) -> f a -> f b    
@@ -710,8 +739,8 @@ fun.product = function(ns) {
 
         if (! fun.even(nargs))
             throw new Error("all patterns in a Match must have a corresponding expression");
-        else
-            console.log(nargs);
+        // else
+        //     console.log(nargs);
 
         function TestCase(val, patterns) {
             var pattern = patterns[0], expr = patterns[1];
@@ -776,6 +805,9 @@ fun.product = function(ns) {
 
     // data Maybe a = Nothing | Just a
     fun.Maybe = Iface.parse("isNothing fmap/1 ret/1 bind/1");
+
+    // fun.Maybe = fun.instance([fun.Functor, fun.Monad],
+    //                          Iface.parse("isNothing fmap/1 ret/1 bind/1"));
     
     var Maybe = function(val) {
         if (! fun.isDefined(val)) {
@@ -805,7 +837,10 @@ fun.product = function(ns) {
             // instance Functor where
             fmap:      function(f)    { return fun.Just(f(val)); },
             // instance Monad where
-            ret:       function(a)    { return fun.Just(a); },
+            ret:       function(a)    {
+                var good = fun.isDefined(a) && (! fun.isNull(a));
+                return good ? fun.Just(a) : fun.Nothing;
+            },
             // HACK: don't expect client code to return a Maybe value,
             //       just wrap it for them
             bind:      function(f)    { return f(val); }
@@ -1144,9 +1179,10 @@ fun.takeWhile = function(p, xs) {
 
 //+ dropWhile :: (a -> Boolean) -> [a] -> [a]
 fun.dropWhile = function(p, xs) {
-    if (! (fun.isFunction(p) && fun.isArray(xs))) {
-        return undefined;
-    } else if (fun.empty(xs)) {
+    if (! (fun.isFunction(p) && fun.isArray(xs)))
+        throw new Error("dropWhile expects a Function and an Array");
+
+    if (fun.empty(xs)) {
         return [];
     } else {
         var i;
