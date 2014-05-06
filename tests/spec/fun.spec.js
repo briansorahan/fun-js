@@ -1576,7 +1576,7 @@ describe("fun.js", function() {
     	});
 
         it("determines if an Object implements an each Iface in the provided array", function() {
-            var iface = instance([Functor, Monad], {
+            var obj = instance([Functor, Monad], {
                 where: {
                     fmap:   function(f) {},
                     ret:    function(a) {},
@@ -1584,7 +1584,7 @@ describe("fun.js", function() {
                 }
             });
 
-            expect(isIface(iface)).toBe(true);
+            expect(isObject(obj)).toBe(true);
         });
 
         it("throws an Error if the object does not fully implement at least one of the provided Iface's", function() {

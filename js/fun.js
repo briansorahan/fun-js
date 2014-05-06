@@ -658,7 +658,7 @@ fun.product = function(ns) {
     //+ isIface :: Object -> Boolean
     fun.isIface = fun.instanceOf(Iface);
 
-    //+ instance :: [Iface] -> Iface -> Iface
+    //+ instance :: [Iface] -> Object -> Object
     //! Throws an Error if the 2nd param does not implement all
     //! interfaces provided in the first param.
     //! If all the interfaces from the first param are implemented properly,
@@ -679,7 +679,7 @@ fun.product = function(ns) {
             }
         });
 
-        return new Iface(obj);
+        return obj;
     };
 
     //+ class Functor f where
