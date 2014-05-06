@@ -914,6 +914,14 @@ fun.product = function(ns) {
         }
     };
 
+    fun.IO = fun.Iface( fun.instance( [fun.Functor, fun.Monad], {
+        where: {
+            fmap: function(f) {},
+            unit: function(a) {},
+            bind: function(f) {}
+        }
+    }));
+
 })();
 
 //+ fmap :: (a -> b) -> f a -> f b
