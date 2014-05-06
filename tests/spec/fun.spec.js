@@ -104,9 +104,9 @@ describe("fun.js", function() {
         });
 
         describe("Monad", function() {
-            it("requires ret/1 and bind/1", function() {
-                var m  = { ret: function(a){}, bind: function(f)  {} };
-                var nm = { ret: function(a){}, bind: function(f,g){} };
+            it("requires unit/1 and bind/1", function() {
+                var m  = { unit: function(a){}, bind: function(f)  {} };
+                var nm = { unit: function(a){}, bind: function(f,g){} };
 
                 expect(isObject(Monad.instance(m))).toBe(true);
 
@@ -1579,7 +1579,7 @@ describe("fun.js", function() {
             var obj = instance([Functor, Monad], {
                 where: {
                     fmap:   function(f) {},
-                    ret:    function(a) {},
+                    unit:    function(a) {},
                     bind:   function(f) {}
                 }
             });
@@ -1592,7 +1592,7 @@ describe("fun.js", function() {
                 instance([Functor, Monad], {
                     where: {
                         fmap:   function(f) {},
-                        // ret:    function(a) {},
+                        // unit:    function(a) {},
                         bind:   function(f) {}
                     }
                 });

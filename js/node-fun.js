@@ -2,7 +2,7 @@ var http = require("http");
 var EventEmitter = require("events").EventEmitter;
 
 module.exports.augment = function(fun) {
-    fun.Http = fun.Iface.parse("fmap/1 ret/1 bind/1");
+    fun.Http = fun.Iface.parse("fmap/1 unit/1 bind/1");
 
     fun.Http.Request = fun.Iface.parse("host port path method headers");
 
@@ -33,7 +33,7 @@ module.exports.augment = function(fun) {
 
         return fun.Http.instance({
             fmap: function(f) {},
-            ret:  function(a) {},
+            unit:  function(a) {},
             bind: function(f) {
                 ev.on("error",    fun.compose(f, fun.Left));
                 ev.on("response", fun.compose(f, fun.Right));

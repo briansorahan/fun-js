@@ -689,7 +689,7 @@ fun.product = function(ns) {
     //+ class Monad m where
     //+ ret  :: a -> m a
     //+ bind :: m a -> (a -> m b) -> m b
-    fun.Monad = Iface.parse("ret/1 bind/1");
+    fun.Monad = Iface.parse("unit/1 bind/1");
 
     //+ mjoin :: (Monad m) => m (m a) -> m a
     fun.mjoin = function(m) {
@@ -804,10 +804,10 @@ fun.product = function(ns) {
     };
 
     // data Maybe a = Nothing | Just a
-    fun.Maybe = Iface.parse("isNothing fmap/1 ret/1 bind/1");
+    fun.Maybe = Iface.parse("isNothing fmap/1 unit/1 bind/1");
 
     // fun.Maybe = fun.instance([fun.Functor, fun.Monad],
-    //                          Iface.parse("isNothing fmap/1 ret/1 bind/1"));
+    //                          Iface.parse("isNothing fmap/1 unit/1 bind/1"));
     
     var Maybe = function(val) {
         if (! fun.isDefined(val)) {
@@ -824,7 +824,7 @@ fun.product = function(ns) {
         // instance Functor where
         fmap:      function(f)    { return fun.Nothing; },
         // instance Monad where
-        ret:       function(a)    { return fun.Nothing; },
+        unit:       function(a)    { return fun.Nothing; },
         bind:      function(f)    { return fun.Nothing; }
     });
 
@@ -837,7 +837,7 @@ fun.product = function(ns) {
             // instance Functor where
             fmap:      function(f)    { return fun.Just(f(val)); },
             // instance Monad where
-            ret:       function(a)    {
+            unit:       function(a)    {
                 var good = fun.isDefined(a) && (! fun.isNull(a));
                 return good ? fun.Just(a) : fun.Nothing;
             },
