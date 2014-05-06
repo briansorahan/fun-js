@@ -350,7 +350,8 @@ describe("fun.js", function() {
                 expect(isa(Animal)(Machine)).toBe(false);
             });
 
-            it("provides an imp method that throws if an Object does not provide a complete implementation", function() {
+            it("provides an instance method that throws if an "
+               + "Object does not provide a complete implementation", function() {
                 var bad = function() {
                     return Animal.instance({
                         breathe: function(stuff) {}
