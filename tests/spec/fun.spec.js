@@ -381,7 +381,7 @@ describe("fun.js", function() {
                 }, 100);
             });
 
-            it("the 'on' function can be curried", function(done) {
+            it("the 'on' and 'emit' functions can be curried", function(done) {
                 var emitter = new Emitter(), val = 3.14;
 
                 var onFoo = on(emitter, "foo");
@@ -391,8 +391,9 @@ describe("fun.js", function() {
                     done();
                 });
 
+                emitFoo = emit(emitter, "foo");
                 setTimeout(function() {
-                    emit(emitter, "foo", val);
+                    emitFoo(val);
                 }, 100);
             });
         });

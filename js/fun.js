@@ -945,10 +945,11 @@ fun.product = function(ns) {
         return emitter;
     }.autoCurry();
 
-    fun.emit = function(emitter, eventName) {
+    fun.emit = function(emitter, eventName, value) {
         if (! fun.instanceOf(Emitter, emitter))
             throw new Error("on requires first argument to be an instance of Emitter");
         var args = [eventName].concat(Array.prototype.slice.call(arguments, 2));
+        console.log("args = " + JSON.stringify(args));
         emitter.emit.apply(emitter, args);
         return emitter;
     }.autoCurry();
