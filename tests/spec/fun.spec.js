@@ -279,8 +279,9 @@ describe("fun.js", function() {
 
                 function fail() { expect(1).toEqual(3); }
                 function pass(result) { expect(result).toEqual(6); }
+                function throws() { fmap(function() {}, l); }
 
-                expect(fmap(function() {}, l)).toEqual(l);
+                expect(throws).toThrow();
                 expect(either(fail, pass, fmap(timesTwo, Right(3))));
             });
         });
@@ -360,8 +361,42 @@ describe("fun.js", function() {
                 };
                 expect(bad).toThrow();
             });
+        }); // Iface
+
+        describe("Emitter", function() {
+            it(isGlobalizable, function() {
+                expect(isFunction(Emitter)).toBe(true);
+            });
+
+            it("uses 'emit' to send events and 'on' to register listeners", function(done) {
+                var emitter = new Emitter(), val = 3.14;
+
+                emitter.on("foo", function(n) {
+                    expect(n).toEqual(val);
+                    done();
+                });
+
+                setTimeout(function() {
+                    emitter.emit("foo", val);
+                }, 100);
+            });
+
+            it("the 'on' function can be curried", function(done) {
+                var emitter = new Emitter(), val = 3.14;
+
+                var onFoo = on(emitter, "foo");
+
+                onFoo(function(n) {
+                    expect(n).toEqual(val);
+                    done();
+                });
+
+                setTimeout(function() {
+                    emit(emitter, "foo", val);
+                }, 100);
+            });
         });
-    });
+    }); // Types
 
     describe("Control", function() {
         describe("CaseMatch", function() {

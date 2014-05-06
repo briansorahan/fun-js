@@ -2,39 +2,60 @@ var http = require("http");
 var EventEmitter = require("events").EventEmitter;
 
 module.exports.augment = function(fun) {
-    fun.Http = fun.Iface.parse("fmap/1 unit/1 bind/1");
+    fun.Http = {
+        Request:  fun.Iface.parse("host port path method headers"),
+        Response: fun.Iface.parse("statusCode headers body")
+    };
 
-    fun.Http.Request = fun.Iface.parse("host port path method headers");
-
-    fun.Http.Response = fun.Iface.parse("statusCode headers body");
-
-    // httpRequest :: Http.Request -> Promise Either Error Http.Response
+    // httpRequest :: Http.Request -> IO (Either Error Http.Response)
     fun.httpRequest = function(req) {
-        if (! fun.isa(fun.Http.Request, req))
-            throw new Error("Http.request requires an Http.Request");
+        function makeRequest(ev) {
+            var buflen = 0, buf = new Buffer(buflen);
+            
+            if (! fun.isa(fun.Http.Request, req)) {
+                ev.emit("error", new Error("httpRequest requires an Http.Request as the first argument"));
+            } else {
+                var reqopts = {
+                    method: req.method || "GET",
+                    host: req.host() || "localhost",
+                    port: req.port() || 80,
+                    path: req.path() || "/",
+                    headers: req.headers()
+                };
 
-        var ev = new EventEmitter();
+                var client = http.request(reqopts, function(res) {
+                    // trigger error or response
+                    res.setEncoding("utf8");
+                    res.on("data", function(dataBuf) {
+                        buflen += dataBuf.length;
+                        buf = Buffer.concat([ buf, dataBuf ], buflen);
+                    });
+                    res.on("close", function() {
+                        ev.emit("error", new Error("connection was ended"));
+                    });
+                    res.on("end", function() {
+                        ev.emit("response", fun.Http.Response.instance({
+                            
+                        }));
+                    });
+                });
 
-        var reqopts = {
-            method: req.method || "GET",
-            host: req.host() || "localhost",
-            port: req.port() || 80,
-            path: req.path() || "/",
-            headers: req.headers()
-        };
+                client.on("error", ev.emit("error"));
+            }
+        }
 
-        var client = http.request(reqopts, function(res) {
-            // trigger error or response
-        });
-
-        client.on("error", function(err) {
-            // trigger error
-        });
-
-        return fun.Http.instance({
-            fmap: function(f) {},
-            unit:  function(a) {},
+        return fun.IO.instance({
+            fmap: function(f) {
+                var ev  = new EventEmitter();
+                makeRequest(ev);
+                ev.on("error",    fun.compose(fun.IO, f, fun.Left));
+                ev.on("response", fun.compose(fun.IO, f, fun.Right));
+            },
+            unit: function(a) {
+            },
             bind: function(f) {
+                var ev  = new EventEmitter();
+                makeRequest(ev);
                 ev.on("error",    fun.compose(f, fun.Left));
                 ev.on("response", fun.compose(f, fun.Right));
             }

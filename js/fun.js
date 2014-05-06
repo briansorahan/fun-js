@@ -806,9 +806,6 @@ fun.product = function(ns) {
     // data Maybe a = Nothing | Just a
     fun.Maybe = Iface.parse("isNothing fmap/1 unit/1 bind/1");
 
-    // fun.Maybe = fun.instance([fun.Functor, fun.Monad],
-    //                          Iface.parse("isNothing fmap/1 unit/1 bind/1"));
-    
     var Maybe = function(val) {
         if (! fun.isDefined(val)) {
             return fun.Nothing;
@@ -824,7 +821,7 @@ fun.product = function(ns) {
         // instance Functor where
         fmap:      function(f)    { return fun.Nothing; },
         // instance Monad where
-        unit:       function(a)    { return fun.Nothing; },
+        unit:      function(a)    { return fun.Nothing; },
         bind:      function(f)    { return fun.Nothing; }
     });
 
@@ -859,21 +856,19 @@ fun.product = function(ns) {
 
     //+ data Either a b = Left a | Right b
 
-    var Either = {
-        Iface: Iface.parse("val isLeft fmap/1 bind/1"),
-        Undefined: {}
-    };
+    var Either = Iface.parse("val isLeft fmap/1 unit/1 bind/1");
 
     // Data constructors
     fun.Left  = function(val) {
-        var self = {
-            val:    function()  { return val; },
-            isLeft: function()  { return true; },
-            fmap:   function(f) { return self; },
-            bind:   function(f) { return fun.Left(val); }
-        };
-
-        return self;
+        return fun.instance([ fun.Functor, fun.Monad ], {
+            where: {
+                val:    function()  { return val; },
+                isLeft: function()  { return true; },
+                unit:   function(a) { return fun.Left(a); },
+                fmap:   function(f) { return self; },
+                bind:   function(f) { return fun.Left(val); }
+            }
+        });
     };
 
     fun.Right = function(val) {
@@ -887,11 +882,10 @@ fun.product = function(ns) {
 
     //+ either :: (a -> c) -> (b -> c) -> Either a b -> c
     fun.either = function(f, g, obj) {
-        if ((! fun.isFunction(f)) || (! fun.isFunction(g))) {
-            return Either.Undefined;
-        } else {
-            return obj.isLeft() ? f(obj.val()) : g(obj.val());
-        }
+        if ((! fun.isFunction(f)) || (! fun.isFunction(g)))
+            throw new Error("either requires the first two arguments to be functions");
+
+        return obj.isLeft() ? f(obj.val()) : g(obj.val());
     }.autoCurry();
 
     fun.lefts = function(array) {
@@ -914,13 +908,50 @@ fun.product = function(ns) {
         }
     };
 
-    fun.IO = fun.Iface( fun.instance( [fun.Functor, fun.Monad], {
-        where: {
-            fmap: function(f) {},
-            unit: function(a) {},
-            bind: function(f) {}
+    fun.IO = function(val) {
+        return fun.Iface( fun.instance( [fun.Functor, fun.Monad], {
+            where: {
+                fmap: function(f) { return fun.IO(f(val)); },
+                unit: function(a) { return fun.IO(a); },
+                bind: function(f) { return f(val); }
+            }
+        }));
+    };
+
+    function Emitter() {
+        this._listeners = {};
+    }
+
+    Emitter.prototype.on = function(eventName, listener) {
+        var self = this;
+        self._listeners[eventName] = listener;
+    };
+
+    Emitter.prototype.emit = function(eventName) {
+        var self = this,
+            l = self._listeners[eventName],
+            args = Array.prototype.slice.call(arguments, 1);
+        if (fun.isFunction(l)) {
+            l.apply(self, args);
         }
-    }));
+    };
+
+    fun.Emitter = Emitter;
+
+    fun.on = function(emitter, eventName, listener) {
+        if (! fun.instanceOf(Emitter, emitter))
+            throw new Error("on requires first argument to be an instance of Emitter");
+        emitter.on(eventName, listener);
+        return emitter;
+    }.autoCurry();
+
+    fun.emit = function(emitter, eventName) {
+        if (! fun.instanceOf(Emitter, emitter))
+            throw new Error("on requires first argument to be an instance of Emitter");
+        var args = [eventName].concat(Array.prototype.slice.call(arguments, 2));
+        emitter.emit.apply(emitter, args);
+        return emitter;
+    }.autoCurry();
 
 })();
 
