@@ -1,8 +1,8 @@
-// -*- js3-indent-level: 4; -*-
-var http = require("http");
-var EventEmitter = require("events").EventEmitter;
 
-module.exports.augment = function(fun) {
+var http = require("http")
+  , core = require("./core")
+  , EventEmitter = require("events").EventEmitter;
+
     // aliases
     var instance      = fun.instance
       , compose       = fun.compose
@@ -72,5 +72,4 @@ module.exports.augment = function(fun) {
         });
     };
 
-    fun.Http = Http;
-};
+    ex.Http = Http;

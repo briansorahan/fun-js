@@ -1,8 +1,4 @@
-var fun = require("./js/fun");
-var nodeFun = require("./js/node-fun");
-
-// mixin node-specific functions
-nodeFun.augment(fun);
+var fun = require("../src");
 
 // aliases
 var httpRequest = fun.httpRequest
