@@ -32,7 +32,20 @@
     },
     "devDependencies" : {
         "browserify": "3.46.0",
-        "jasmine-node": "1.7.0"
+        "tape" : "2.12.3",
+        "testling" : "1.6.1"
+    },
+    "testling" : {
+        "browsers" : [
+            "ie/9..10",
+            "chrome/22..latest",
+            "ff/16..latest",
+            "safari/latest",
+            "opera/11.0..latest",
+            "iphone/6",
+            "ipad/6",
+            "android-browser/latest"
+        ]
     },
     "scripts" : {
         "test" : "make test"
