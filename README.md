@@ -14,15 +14,26 @@ $ npm install fun-js
 
 #### browser
 
-Drop fun.js into your project and see usage below.
+```
+$ git clone https://github.com/briansorahan/fun-js.git
+$ cp -R fun-js/src myproj/fun-js
+```
+
+```javascript
+var fun = require("./fun");
+```
 
 ## test
 
 ```
-$ ./test
+$ make test
 ```
 
-See [project page][1] for test suite output.
+or
+
+```
+$ npm test
+```
 
 ## usage
 
@@ -62,25 +73,10 @@ var hasBrian2 = compose(isDefined, find(isBrian));
 assert(hasBrian2(beatles), "double-checking that Brian is a legendary rock star");
 ```
 
-#### browser
 
-```javascript
-// global reference stored under window.fun...
-// selectively import 'curry' and 'compose' into the global context
-fun.import({
-    select: [
-        "curry",
-        "compose"
-    ]
-});
-
-if (typeof curry !== "function" || typeof compose !== "function") {
-    throw new Error("fun-js could not selectively import curry and compose");
-}
-    
-```
 
 ## more info
 [project page][1]
 
 [1]: http://briansorahan.github.io/fun-js
+[2]: http://browserify.org
