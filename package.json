@@ -30,9 +30,10 @@
         "type" : "git",
         "url" : "http://github.com/briansorahan/fun-js.git"
     },
-    "devDependencies" : [
-        "jasmine-node"
-    ],
+    "devDependencies" : {
+        "browserify": "3.46.0"
+        "jasmine-node": "1.7.0"
+    },
     "scripts" : {
         "test" : "./test"
     }

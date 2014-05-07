@@ -378,7 +378,7 @@ describe("fun.js", function() {
 
                 setTimeout(function() {
                     emitter.emit("foo", val);
-                }, 100);
+                }, 10);
             });
 
             it("the 'on' and 'emit' functions can be curried", function(done) {
@@ -396,7 +396,7 @@ describe("fun.js", function() {
                     emitFoo(val);
                 }, 100);
             });
-        });
+        }); // Emit
     }); // Types
 
     describe("Control", function() {
@@ -2408,9 +2408,9 @@ describe("fun.js", function() {
         });
     });
 
-    // if (isNodeJS()) {
-    //     describe("node-fun", function() {
-    //     });
-    // }
+    if (isNodeJS()) {
+        describe("node-fun", function() {
+        });
+    }
 });
 

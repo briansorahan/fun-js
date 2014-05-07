@@ -1,4 +1,4 @@
-/**
+/* -*- js3-indent-level: 4; -*-
  * @author Brian Sorahan
  * @license MIT
  * @title fun-js
@@ -129,7 +129,7 @@ var autoCurry = function (fn, numArgs) {
             var curried = curry.apply(this, [fn].concat(Array.prototype.slice.call(arguments)));
             var rem = numArgs - arguments.length;
             // If we still don't have the expected number of arguments,
-            // return 
+            // return
             return expectedArgs - arguments.length > 0 ? autoCurry(curried, rem) : curried;
         } else {
             return fn.apply(this, arguments);
@@ -141,7 +141,7 @@ Function.prototype.autoCurry = function(n) {
     return autoCurry(this, n || this.length);
 };
 
-//+ compose :: f -> g -> h 
+//+ compose :: f -> g -> h
 fun.compose = function() {
     var fns = Array.prototype.slice.call(arguments), numFns = fns.length;
     return function () {
@@ -166,7 +166,7 @@ fun.composer = function() {
     };
 }.autoCurry();
 
-//+ flip :: f -> g 
+//+ flip :: f -> g
 fun.flip = function(f) {
     return function () {
 	    return f(arguments[1], arguments[0]);
@@ -459,11 +459,13 @@ fun.product = function(ns) {
 
 // Types
 (function() {
+    var If = fun.If;
+
     /*
      * If you're wondering why I only go up to functions with
      * 10 parameters here, please see Perlisisms #11 at
      * http://www.cs.yale.edu/homes/perlis-alan/quotes.html
-     * 
+     *
      * These are used in Iface.parse below.
      */
     var FunctionWithArity = [
@@ -501,13 +503,13 @@ fun.product = function(ns) {
 
     /*
      * Convert an Iface to a string.
-     * 
+     *
      * Example:
      *     var Person = Iface({
      *         greet: function(person) {},
      *         introduce: function(p1, p2) {}
      *     });
-     * 
+     *
      *     Person.toString();
      *     // => "greet/1 introduce/2"
      */
@@ -520,11 +522,11 @@ fun.product = function(ns) {
     /*
      * Class method to parse an Iface from a string.
      * Returns Iface.ParseError if it cannot parse the string.
-     * 
+     *
      * Example:
      *     var PersonFromString = Iface.parse("greet,1_&_introduce,2");
      *     // equivalent to
-     *     
+     *
      */
     Iface.Empty     = new Iface({});
     Iface.EmptyDesc = {};
@@ -536,7 +538,7 @@ fun.product = function(ns) {
         if (typeof s !== "string") {
             return new Error("Iface.parse only accepts strings");
         }
-        
+
         var len = s.length;
 
         if (len === 0) {
@@ -571,7 +573,7 @@ fun.product = function(ns) {
                     // "<name>," or "<name>"
                     acc[str] = FunctionWithArity[0];
                 }
-                
+
                 return acc;
             }, {});
 
@@ -610,7 +612,7 @@ fun.product = function(ns) {
             myFuncNames = fun.keys(self._methods),
             objFuncs = fun.functions(obj),
             objFuncNames = fun.keys(objFuncs);
-        
+
         if(! fun.isArray(myFuncNames)) {
             return false;
         } else if (! fun.isArray(objFuncNames)) {
@@ -663,7 +665,7 @@ fun.product = function(ns) {
     //! interfaces provided in the first param.
     //! If all the interfaces from the first param are implemented properly,
     //! returns the 2nd param.
-    fun.instance = function(ifaces, obj) {
+    var instance = fun.instance = function(ifaces, obj) {
         if (fun.not(fun.isArray(ifaces)) || (ifaces.length === 0))
             throw new Error("instance expects a nonempty Array as first arg");
         if (! (fun.isObject(obj) && obj.hasOwnProperty("where") && fun.isObject(obj.where)))
@@ -679,22 +681,17 @@ fun.product = function(ns) {
             }
         });
 
-        return obj;
+        return obj.where;
     };
 
     //+ class Functor f where
-    //+ fmap :: (a -> b) -> f a -> f b    
-    fun.Functor = Iface.parse("fmap/1");
+    //+ fmap :: (a -> b) -> f a -> f b
+    var Functor = fun.Functor = Iface.parse("fmap/1");
 
     //+ class Monad m where
     //+ ret  :: a -> m a
     //+ bind :: m a -> (a -> m b) -> m b
-    fun.Monad = Iface.parse("unit/1 bind/1");
-
-    //+ mjoin :: (Monad m) => m (m a) -> m a
-    fun.mjoin = function(m) {
-        return m.bind(fun.id);
-    };
+    var Monad = fun.Monad = Iface.parse("unit/1 bind/1");
 
     /*
      * Pattern matching according to the following rules:
@@ -704,7 +701,7 @@ fun.product = function(ns) {
      * For Array and Object use instanceof, then strictDeepEqual.
      * For Infinity, null, undefined use identical.
      */
-    fun.CaseMatch = function(pattern, val) {
+    var CaseMatch = fun.CaseMatch = function(pattern, val) {
         if (pattern instanceof Iface) {
             return fun.isa(pattern, val);
         } else if (fun.isFunction(pattern)) {
@@ -733,7 +730,7 @@ fun.product = function(ns) {
      * for a good description of some of the things you need to be careful of
      * when trying to match using instanceOf
      */
-    fun.Match = function() {
+    var Match = fun.Match = function() {
         var args = Array.prototype.slice.call(arguments),
             nargs = args.length;
 
@@ -804,39 +801,30 @@ fun.product = function(ns) {
     };
 
     // data Maybe a = Nothing | Just a
-    fun.Maybe = Iface.parse("isNothing fmap/1 unit/1 bind/1");
+    var Maybe = fun.Maybe = Iface.parse("isNothing fmap/1 unit/1 bind/1");
 
-    var Maybe = function(val) {
-        if (! fun.isDefined(val)) {
-            return fun.Nothing;
-        } else if (fun.isNull(val)) {
-            return fun.Nothing;
-        } else {
-            return fun.Just(val);
-        }
-    };
-
-    fun.Nothing = fun.Maybe.instance({
+    var Nothing = fun.Nothing = fun.Maybe.instance({
         isNothing: function()     { return true; },
         // instance Functor where
-        fmap:      function(f)    { return fun.Nothing; },
+        fmap:      function(f)    { return Nothing; },
         // instance Monad where
-        unit:      function(a)    { return fun.Nothing; },
-        bind:      function(f)    { return fun.Nothing; }
+        unit:      function(a)    { return Nothing; },
+        bind:      function(f)    { return Nothing; }
     });
 
     // We map the javascript values undefined and null
     // to Nothing.
-    fun.Just = function(val) {
+    var Just = fun.Just = function(val) {
         return fun.Maybe.instance({
             val:       function()     { return val; },
             isNothing: function()     { return false; },
             // instance Functor where
-            fmap:      function(f)    { return fun.Just(f(val)); },
+            fmap:      function(f)    { return Just(f(val)); },
             // instance Monad where
-            unit:       function(a)    {
-                var good = fun.isDefined(a) && (! fun.isNull(a));
-                return good ? fun.Just(a) : fun.Nothing;
+            unit: function(a)    {
+                return If(fun.isDefined(a) && (! fun.isNull(a)))
+                    .Then(Just(a))
+                    .Else(Nothing);
             },
             // HACK: don't expect client code to return a Maybe value,
             //       just wrap it for them
@@ -918,6 +906,9 @@ fun.product = function(ns) {
         }));
     };
 
+    var Promise = function(val) {
+    };
+
     function Emitter() {
         this._listeners = {};
     }
@@ -949,7 +940,6 @@ fun.product = function(ns) {
         if (! fun.instanceOf(Emitter, emitter))
             throw new Error("on requires first argument to be an instance of Emitter");
         var args = [eventName].concat(Array.prototype.slice.call(arguments, 2));
-        console.log("args = " + JSON.stringify(args));
         emitter.emit.apply(emitter, args);
         return emitter;
     }.autoCurry();
