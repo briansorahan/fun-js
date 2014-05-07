@@ -1,7 +1,7 @@
 var fun;
 
 if (typeof require === "function") {
-    fun = require('../../js/fun');
+    fun = require('../../fun');
     fun.import({ under: global });
 } else if (typeof fun === "object") {
     fun.import({ under: window });
@@ -10,7 +10,7 @@ if (typeof require === "function") {
 describe("fun.js", function() {
     var isGlobalizable = "can be imported into the global namespace";
     var isCurriable = "can be curried";
-    
+
 	var texasCities = [
         "Abilene",
         "Amarillo",
@@ -194,7 +194,7 @@ describe("fun.js", function() {
                 };
                 //
                 // a family tree descended from clones where S is the child
-                // 
+                //
                 //                                         S
                 //                                         |
                 //                 ------------------------------------------------
@@ -225,7 +225,7 @@ describe("fun.js", function() {
 
                 var MS   = Sheep.Natural(MMS, FMS);
                 var FS   = Sheep.Natural(FMS, FFS);
-                
+
                 var S    = Sheep.Natural(MS, FS);
 
                 // expectSheep :: Sheep -> Maybe Sheep -> Boolean
@@ -273,7 +273,7 @@ describe("fun.js", function() {
                 expect(isFunction(Left)).toBe(true);
                 expect(isFunction(Right)).toBe(true);
             });
-            
+
             it("implements fmap", function() {
                 var l = Left(1);
 
@@ -310,7 +310,7 @@ describe("fun.js", function() {
                 vaporizes: function(guest) {},
                 stops: function(time) {}
             };
-            
+
             it(isGlobalizable, function() {
                 expect(isFunction(Iface)).toBe(true);
             });
@@ -586,19 +586,19 @@ describe("fun.js", function() {
 		it(isGlobalizable, function() {
 			expect(typeof isNull).toEqual('function');
 		});
-		
+
 		it("returns true for null", function() {
 			expect(isNull(null)).toBe(true);
 		});
-		
+
 		it("returns false for undefined", function() {
 			expect(isNull(undefined)).toBe(false);
 		});
-		
+
 		it("returns false for 0", function() {
 			expect(isNull(0)).toBe(false);
 		});
-		
+
 		it("returns false for the empty string", function() {
 			expect(isNull("")).toBe(false);
 		});
@@ -608,19 +608,19 @@ describe("fun.js", function() {
 		it(isGlobalizable, function() {
 			expect(typeof isDefined).toEqual('function');
 		});
-		
+
 		it("returns false for undefined", function() {
 			expect(isDefined(undefined)).toBe(false);
 		});
-		
+
 		it("returns true for null", function() {
 			expect(isDefined(null)).toBe(true);
 		});
-		
+
 		it("returns true for 0", function() {
 			expect(isDefined(0)).toBe(true);
 		});
-		
+
 		it("returns true for the empty string", function() {
 			expect(isDefined("")).toBe(true);
 		});
@@ -630,21 +630,21 @@ describe("fun.js", function() {
     	it(isGlobalizable, function() {
     	    expect(typeof isArray).toEqual('function');
     	});
-		
+
     	it("returns false for undefined", function() {
     	    expect(isArray(undefined)).toBe(false);
     	});
-		
+
     	it("returns false for null", function() {
     	    expect(isArray(null)).toBe(false);
     	});
-		
+
     	it("returns false for numbers, objects, functions", function() {
     	    expect(isArray(0)).toBe(false);
     	    expect(isArray({})).toBe(false);
     	    expect(isArray(function() {})).toBe(false);
     	});
-		
+
     	it("returns true for the arrays", function() {
     	    expect(isArray([])).toBe(true);
     	});
@@ -689,12 +689,12 @@ describe("fun.js", function() {
 		it(isGlobalizable, function() {
 			expect(typeof isNumber).toEqual('function');
 		});
-		
+
 		it("returns false for undefined and null", function() {
 			expect(isNumber(undefined)).toBe(false);
 			expect(isNumber(null)).toBe(false);
 		});
-		
+
 		it("returns true for integers and floats", function() {
 			expect(isNumber(0)).toBe(true);
 			expect(isNumber(0.1)).toBe(true);
@@ -704,7 +704,7 @@ describe("fun.js", function() {
             expect(isNumber("3")).toBe(false);
             expect(isNumber("3.14")).toBe(false);
         });
-		
+
 		it("returns false for objects, arrays, functions", function() {
 			expect(isNumber({})).toBe(false);
 			expect(isNumber([])).toBe(false);
@@ -831,7 +831,7 @@ describe("fun.js", function() {
 		it(isGlobalizable, function() {
 			expect(typeof reduce).toEqual('function');
 		});
-		
+
 		it(isCurriable, function() {
 			expect(typeof mostComments).toEqual("function");
 		});
@@ -852,7 +852,7 @@ describe("fun.js", function() {
 		it(isGlobalizable, function() {
 			expect(typeof reduceRight).toEqual('function');
 		});
-		
+
 		it(isCurriable, function() {
 			expect(typeof totalComments).toEqual("function");
 		});
@@ -1079,7 +1079,7 @@ describe("fun.js", function() {
     describe("zip", function() {
 		var nums1 = [1,1,2,3,5,8,13];
 		var nums2 = [0,1,2,3,4];
-		
+
 		it(isGlobalizable, function() {
 			expect(typeof zip).toEqual('function');
 		});
@@ -1111,7 +1111,7 @@ describe("fun.js", function() {
 		var zipSum = [1,2,4,6,9];
 		var sumTwo; // add up two lists
 		var result;
-		
+
 		beforeEach(function() {
 			sumTwo = zipWith(add);
 			result = sumTwo(nums1, nums2);
@@ -1180,7 +1180,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof joinColons).toEqual('function');
 		});
-		
+
 		it("functions exactly like the builtin Array.join", function() {
 			expect(joinColons(cities)).toEqual(result);
 		});
@@ -1198,7 +1198,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof sliceMiddle).toEqual('function');
 		});
-		
+
 		it("functions exactly like the builtin Array.slice", function() {
 			expect(sliceMiddle(cities)).toEqual(cities.slice(lower, upper));
 		});
@@ -1218,7 +1218,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof indexOfHouston).toEqual('function');
 		});
-		
+
 		it("functions exactly like the builtin Array.indexOf", function() {
 			expect(indexOfHouston(cities)).toEqual(cities.indexOf("Houston"));
 		});
@@ -1235,7 +1235,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof lastIndexOfHouston).toEqual('function');
 		});
-		
+
 		it("functions exactly like the builtin Array.lastIndexOf", function() {
 			expect(lastIndexOfHouston(cities)).toEqual(cities.lastIndexOf("Houston"));
 		});
@@ -1251,7 +1251,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof containsAustin).toEqual('function');
 		});
-		
+
 		it("Determines whether an array contains a value", function() {
 			expect(containsAustin(texasCities)).toBe(true);
             expect(containsAustin([])).toBe(false);
@@ -1277,7 +1277,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof inTx).toEqual('function');
 		});
-		
+
 		it("is `contains` with the arguments reversed", function() {
 			expect(inTx("Lubbock")).toBe(true);
 			expect(inTx("Durham")).toBe(false);
@@ -1326,7 +1326,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof fourTimes).toEqual('function');
 		});
-		
+
 		it("creates an Array of length n with each value equal to the second arg", function() {
             expect(fourTimes("r")).toEqual(["r", "r", "r", "r"]);
 		});
@@ -1354,7 +1354,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof takeFour).toEqual('function');
 		});
-		
+
 		it("returns an Array of the first n elements of the second arg", function() {
             expect(takeFour([1,2,3,4,5,6,7,8])).toEqual([1,2,3,4]);
 		});
@@ -1388,7 +1388,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(typeof dropFour).toEqual('function');
 		});
-		
+
 		it("returns the suffix after the first n elements of the second arg", function() {
             expect(dropFour([1,2,3,4,5,6,7,8])).toEqual([5,6,7,8]);
 		});
@@ -1433,7 +1433,7 @@ describe("fun.js", function() {
             expect(fst(splitPair)).toEqual([1, 2, 3, 4]);
             expect(snd(splitPair)).toEqual([5, 6, 7, 8]);
         });
-    });		
+    });
 
     describe("takeWhile", function() {
         var wellCommented = compose(gte(50), pluck("comments"));
@@ -1506,7 +1506,7 @@ describe("fun.js", function() {
 		        }
             ]);
         });
-    });		
+    });
 
     describe("span", function() {
         var wellCommented = compose(gte(50), pluck("comments"));
@@ -1558,7 +1558,7 @@ describe("fun.js", function() {
 		        }
             ]);
         });
-    });		
+    });
 
 	////////////////////////////////////////
 	// Object
@@ -1572,7 +1572,7 @@ describe("fun.js", function() {
 		it(isCurriable, function() {
 			expect(map(pluck("id"), users)).toEqual([1,2,3,4,5]);
 		});
-		
+
 		it("returns undefined for nonexistent keys", function() {
 			expect(pluck("foo")(autechre)).not.toBeDefined();
 		});
@@ -1657,7 +1657,7 @@ describe("fun.js", function() {
     	it(isCurriable, function() {
     	    expect(typeof incrVals).toEqual('function');
     	});
-		
+
 		it("maps over key/value pairs of an object", function() {
 			var input = {a: 1, b: 2, c: 3};
 			expect(incrVals(input)).toEqual([2,3,4]);
@@ -2245,7 +2245,7 @@ describe("fun.js", function() {
     	it(isGlobalizable, function() {
     	    expect(typeof slice).toEqual('function');
     	});
-        
+
         it("is non-destructive", function() {
             expect(arr).toEqual([1,2,3]);
         });
@@ -2413,4 +2413,3 @@ describe("fun.js", function() {
         });
     }
 });
-

@@ -245,7 +245,7 @@ fun.strictDeepEqual = deepEqualWith(fun.identical);
 fun.and = function () {
     var args = Array.prototype.slice.call(arguments);
     return function () {
-	return reduce(function(acc, v) {
+	    return reduce(function(acc, v) {
 	    return acc && v;
 	}, true, args.concat(Array.prototype.slice.call(arguments)));
     };
@@ -1374,8 +1374,8 @@ fun.import = function(options) {
 
 if (fun.isNodeJS()) {
     // any node.js specific stuff we may want to include
-    var node_fun = require("./node-fun.js");
-    node_fun.augment(fun);
+    var fun_http = require("./fun-http.js");
+    fun_http.augment(fun);
     module.exports = fun;
 } else if (fun.isBrowser()) {
     window.fun = fun;
