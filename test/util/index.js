@@ -1,4 +1,4 @@
-var fun = require("../src")
+var fun = require("../../src")
   , isFunction = fun.isFunction
 ;
 
@@ -16,7 +16,7 @@ module.exports.assertFunction = function(t, arity, val) {
 
 /**
  * Test that a function throws an exception.
- * 
+ *
  * @param t - A reference to the test object.
  * @param f - The function that should throw.
  */
