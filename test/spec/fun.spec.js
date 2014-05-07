@@ -371,14 +371,35 @@ describe("fun.js", function() {
             it("uses 'emit' to send events and 'on' to register listeners", function(done) {
                 var emitter = new Emitter(), val = 3.14;
 
-                emitter.on("foo", function(n) {
-                    expect(n).toEqual(val);
-                    done();
-                });
+                if (! isFunction(done)) {
+                    done = false;
 
-                setTimeout(function() {
-                    emitter.emit("foo", val);
-                }, 10);
+                    runs(function(){
+                        setTimeout(function() {
+                            emitter.emit("foo", val);
+                        }, 10);
+                    });
+
+                    waitsFor(function() {
+                        return done;
+                    });
+
+                    runs(function() {
+                        emitter.on("foo", function(n) {
+                            expect(n).toEqual(val);
+                            done = true;
+                        });
+                    });
+                } else {
+                    emitter.on("foo", function(n) {
+                        expect(n).toEqual(val);
+                        done();
+                    });
+
+                    setTimeout(function() {
+                        emitter.emit("foo", val);
+                    }, 10);
+                }
             });
 
             it("the 'on' and 'emit' functions can be curried", function(done) {
