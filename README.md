@@ -14,6 +14,8 @@ $ npm install fun-js
 
 #### browser
 
+[![Browser Compatibility](https://ci.testling.com/briansorahan/fun-js.png)](https://ci.testling.com/briansorahan/fun-js)
+
 ```
 $ git clone https://github.com/briansorahan/fun-js.git
 $ cp -R fun-js/src myproj/fun-js
