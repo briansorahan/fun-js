@@ -35,6 +35,6 @@
         "jasmine-node": "1.7.0"
     },
     "scripts" : {
-        "test" : "./test"
+        "test" : "make test"
     }
 }
