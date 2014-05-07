@@ -279,9 +279,9 @@ describe("fun.js", function() {
 
                 function fail() { expect(1).toEqual(3); }
                 function pass(result) { expect(result).toEqual(6); }
-                function throws() { fmap(function() {}, l); }
+                function bad() { fmap(function() {}, l); }
 
-                expect(throws).toThrow();
+                expect(bad).toThrow();
                 expect(either(fail, pass, fmap(timesTwo, Right(3))));
             });
         });
