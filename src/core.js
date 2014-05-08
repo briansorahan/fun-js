@@ -1,4 +1,4 @@
-/*
+/* -*- mode: js2; -*-
  * @author Brian Sorahan
  * @license MIT
  * @title fun-js
@@ -119,6 +119,7 @@ ex.autoCurry = function (fn, numArgs) {
     };
 };
 
+//! Note that autoCurrying functions returns a function with arity 0
 Function.prototype.autoCurry = function(n) {
     return ex.autoCurry(this, n || this.length);
 };
@@ -158,6 +159,8 @@ ex.flip = function(f) {
 //+ until :: (a -> Boolean) -> (a -> a) -> a -> a
 //! until p f applies f until p holds
 ex.until = function(p, f, x) {
+    if (!ex.isFunction(p) || !ex.isFunction(f))
+        throw new Error("until expects functions for the first two arguments");
     return p(x) ? x : ex.until(p, f, f(x));
 }.autoCurry();
 

@@ -11,7 +11,19 @@ var fun = require("../../src")
  */
 module.exports.assertFunction = function(t, arity, val) {
     t.ok(isFunction(val), t.name + " is a Function");
-    t.equal(val.length, arity, t.name + " arity equals " + arity);
+    t.equal(val.length, arity, t.name + " has arity " + arity);
+}
+
+/**
+ * Run 2 assertions that verify that val is a Function,
+ * and check val's arity.
+ *
+ * @param t   - A reference to the test object.
+ * @param val - The value under inspection.
+ */
+module.exports.assertCurriedFunction = function(t, arity, val) {
+    t.ok(isFunction(val), t.name + ", when curried, returns a Function");
+    t.equal(val.length, arity, t.name + ", when curried, has arity " + arity);
 }
 
 /**

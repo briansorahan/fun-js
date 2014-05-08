@@ -10,6 +10,7 @@
 
 [![Browser Compatibility](https://ci.testling.com/briansorahan/fun-js.png)](https://ci.testling.com/briansorahan/fun-js)
 
+
 ## test
 
 ```
@@ -17,6 +18,14 @@ $ make test
 ```
 
 ## usage
+
+```
+$ npm install fun-js
+```
+
+```javascript
+var fun = require("fun-js");
+```
 
 **Note: fun-js adds a method called 'autoCurry' to Function.prototype**
 
