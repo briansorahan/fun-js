@@ -1,24 +1,17 @@
 # fun-js
 
+## node
+
+
 [![Build Status](https://travis-ci.org/briansorahan/fun-js.png)](https://travis-ci.org/briansorahan/fun-js)
 
-Functional Programming for Javascript
 
-## install
-
-#### node
-
-```
-$ npm install fun-js
-```
-
-#### browser
+## browser
 
 [![Browser Compatibility](https://ci.testling.com/briansorahan/fun-js.png)](https://ci.testling.com/briansorahan/fun-js)
 
 ```
-$ git clone https://github.com/briansorahan/fun-js.git
-$ cp -R fun-js/src myproj/fun-js
+$ npm install fun-js
 ```
 
 ```javascript
@@ -29,12 +22,6 @@ var fun = require("./fun");
 
 ```
 $ make test
-```
-
-or
-
-```
-$ npm test
 ```
 
 ## usage
