@@ -34,7 +34,16 @@ $ make test
 var assert = require("assert");
 
 // import *everything* into the global context
-var fun = require("fun-js").import();
+var fun        = require("fun-js")
+  , compose    = fun.compose
+  , filter     = fun.filter
+  , not        = fun.not
+  , empty      = fun.empty
+  , identical  = fun.identical
+  , pluck      = fun.pluck
+  , isDefined  = fun.isDefined
+  , find       = fun.find
+;
 
 // Currying
 var findBrians = filter(function(person) {
