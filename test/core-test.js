@@ -1,3 +1,4 @@
+// -*- mode: js2; -*-
 var fun = require("../src")
 // aliases
   , id = fun.id
@@ -16,9 +17,32 @@ var fun = require("../src")
   , curry = fun.curry
   , autoCurry = fun.autoCurry
   , compose = fun.compose
+  , composer = fun.composer
+  , flip = fun.flip
+  , until = fun.until
+  , equal = fun.equal
+  , identical = fun.identical
+  , deepEqual = fun.deepEqual
+  , strictDeepEqual = fun.strictDeepEqual
+  , and = fun.and
+  , or = fun.or
+  , not = fun.not
+  , pluck = fun.pluck
+  , dot = fun.dot
+  , has = fun.has
+  , instanceOf = fun.instanceOf
+  , typeOf = fun.typeOf
   , util = require("./util")
 // tape module
   , test = require("tape");
+
+function greet(name) {
+    return "Hi, " + name;
+}
+
+function capitalize(word) {
+    return word[0].toUpperCase() + word.substr(1).toLowerCase();
+}
 
 test("id", function(t) {
     t.plan(3);
@@ -210,22 +234,65 @@ test("curry", function(t) {
 });
 
 test("autoCurry", function(t) {
-    t.plan(4);
+    t.plan(2);
     util.assertFunction(t, 2, autoCurry);
+});
+
+test("Function.prototype.autoCurry", function(t) {
+    t.plan(2);
     util.assertFunction(t, 1, Function.prototype.autoCurry);
 });
 
 test("compose", function(t) {
     t.plan(3);
     util.assertFunction(t, 0, compose);
-    function greet(name) { return "Hi, " + name; }
-    function capitalize(word) {
-        return word[0].toUpperCase() + word.substr(1).toLowerCase();
-    }
     var greetPerson = compose(greet, capitalize);
-
     t.equal(greetPerson("klaatu"), "Hi, Klaatu"
            , t.name + " composes functions in right-to-left order");
+});
+
+test("composer", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, composer);
+    var greetPerson = composer(capitalize, greet);
+    t.equal(greetPerson("klaatu"), "Hi, Klaatu"
+            , t.name + " composes functions in left-to-right order");
+});
+
+test("flip", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 1, flip);
+    function subtract(x, y) { return y - x; }
+    t.equal(flip(subtract)(5, 1), 4,
+            t.name + " flips the arguments of functions that take two arguments");
+});
+
+test("until", function(t) {
+    t.plan(5);
+    util.assertFunction(t, 0, until);
+    function greaterThan100(x) { return x > 100; }
+    function multiplyBy2(x) { return x * 2; }
+    var smallestPow2GreaterThan100 = until(greaterThan100, multiplyBy2);
+    util.assertCurriedFunction(t, 0, smallestPow2GreaterThan100);
+    t.equal(smallestPow2GreaterThan100(1), 128,
+            t.name + " applies f to the 3rd arg until p holds true");
+});
+
+test("equal", function(t) {
+    t.plan(5);
+    util.assertFunction(t, 0, equal);
+    var equals5 = equal(5);
+    util.assertCurriedFunction(t, 0, equals5);
+    t.ok(equals5("5"), t.name + " makes comparisons with ==");
+});
+
+test("identical", function(t) {
+    t.plan(6);
+    util.assertFunction(t, 0, identical);
+    var is5 = identical(5);
+    util.assertCurriedFunction(t, 0, is5);
+    t.notOk(is5("5"), t.name + " does no type coercion");
+    t.ok(is5(5), t.name + " compares with ===");
 });
 
 // TODO: test the rest of the core module
