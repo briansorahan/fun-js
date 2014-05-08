@@ -4,9 +4,8 @@
  * @title fun-js
  * @overview Haskell-esque programming in javascript
  */
-
-var ex = {} // object that gets merged into module.exports
-  , core = require("./core");
+var ex      = {} // object that gets merged into module.exports
+  , core    = require("./core");
 
 //+ incr :: Integer -> Integer
 ex.incr = function(x) {

@@ -1,3 +1,9 @@
+/*
+ * @author Brian Sorahan
+ * @license MIT
+ * @title fun-js
+ * @overview Haskell-esque programming in javascript
+ */
 var ex      = {};
 
 // Pair

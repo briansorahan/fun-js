@@ -1,11 +1,15 @@
+/*
+ * @author Brian Sorahan
+ * @license MIT
+ * @title fun-js
+ * @overview Haskell-esque programming in javascript
+ */
 var ex      = {}
   , core    = require("./core")
   , list    = require("./list")
   , math    = require("./math")
   , iface   = require("./iface")
   , Iface   = iface.Iface;
-
-
 
 /*
  * Pattern matching according to the following rules:

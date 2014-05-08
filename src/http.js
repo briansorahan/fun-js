@@ -1,6 +1,9 @@
-
-
-// aliases
+/*
+ * @author Brian Sorahan
+ * @license MIT
+ * @title fun-js
+ * @overview Haskell-esque programming in javascript
+ */
 var ex            = {}
   , http          = require("http")
   , core          = require("./core")
@@ -16,6 +19,9 @@ var ex            = {}
   , Monad         = types.Monad
   , Left          = either.Left
   , Right         = either.Right
+  , Emitter       = events.Emitter
+  , Send          = events.Send
+  , signal        = events.signal
 ;
 
 var Http = {
@@ -23,15 +29,16 @@ var Http = {
     Response: Iface.parse("statusCode headers body")
 };
 
-// httpRequest :: Http.Request -> IO (Either Error Http.Response)
+// httpRequest :: Http.Request -> Event (Either Error Http.Response)
 ex.httpRequest = function(req) {
-    function makeRequest(f) {
-        var buflen = 0, buf = new Buffer(buflen);
-
+    function RequestWith(emitter) {
         if (! isa(Http.Request, req)) {
-            f(Left(new Error("httpRequest requires an Http.Request as the first argument")));
+            emitter.emit(Left(new Error("httpRequest requires an Http.Request as the first argument")));
         } else {
-            var encoding = "utf8"
+            var buflen = 0
+              , buf = new Buffer(buflen)
+              , encoding = "utf8"
+              , emit = signal(emitter)
               , reqopts = {
                   method: req.method() || "GET",
                   host: req.host() || "localhost",
@@ -50,11 +57,11 @@ ex.httpRequest = function(req) {
                 });
 
                 res.on("close", function() {
-                    f(Left(new Error("connection was ended")));
+                    emitter.emit(Left(new Error("connection was ended")));
                 });
 
                 res.on("end", function() {
-                    f(Right(Http.Response.instance({
+                    emitter.emit( Right( Http.Response.instance({
                         statusCode:     function() { return res.statusCode; }
                       , headers:        function() { return res.headers; }
                       , body:           function() { return buf.toString(); }
@@ -62,18 +69,43 @@ ex.httpRequest = function(req) {
                 });
             });
 
-            client.on("error", compose(f, Left));
+            client.on("error", compose(emit(emitter), Left));
             client.end();
         }
+
+        return Event.instance({
+            fmap: function(f) {
+                emitter.fmap(f);
+            }
+            , unit: function(a) {}
+            , bind: function(f) {
+                return RequestWith(f);
+            }
+        });
     }
 
-    return instance( [Functor, Monad], {
-        where: {
-            fmap: function(f) { return makeRequest(f); }
-          , unit: function(a) {}
-          , bind: function(f) { return makeRequest(f); }
+    return Event.instance({
+        fmap: function(f) {
+            return RequestWith(Emitter(f));
+        }
+        , unit: function(a) {}
+        , bind: function(f) {
+            return RequestWith(f);
         }
     });
 };
 
 ex.Http = Http;
+
+/*
+ * Chaining Event values...
+ * httpRequest(reqInstance).bind(function(e) {
+ *     // queryDb :: Http.Response -> Event (Either Error Db.QueryResult)
+ *     function queryDb(res) {
+ *         return Event.instance
+ *     }
+ * 
+ *     // e :: Either Error Http.Response
+ *     return e.bind(queryDb);
+ * });
+ */
