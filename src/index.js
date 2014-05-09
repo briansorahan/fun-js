@@ -7,7 +7,15 @@
 var ex = {};
 [
     require("./core")
+  , require("./either")
+  , require("./events")
   , require("./http")
+  , require("./iface")
+  , require("./match")
+  , require("./math")
+  , require("./maybe")
+  , require("./pair")
+  , require("./types")
 
 ].forEach(function(module) {
     // munge them all together

@@ -4,73 +4,95 @@
  * @title fun-js
  * @overview Haskell-esque programming in javascript
  */
-var ex          = {}
-  , events      = require("events").EventEmitter
-  , core        = require("./core")
-  , iface       = require("./iface")
-  , types       = require("./types")
-  , isFunction  = core.isFunction
-  , Iface       = iface.Iface
-  , instance    = iface.instance
-  , Functor     = types.Functor
-  , Monad       = types.Monad
-  , If          = core.If
+var ex            = {}
+  , core          = require("./core")
+  , iface         = require("./iface")
+  , types         = require("./types")
+  , isArray       = core.isArray
+  , isFunction    = core.isFunction
+  , If            = core.If
+  , isa           = iface.isa
+  , Iface         = iface.Iface
+  , instance      = iface.instance
+  , Functor       = types.Functor
+  , Monad         = types.Monad
 ;
 
-// emit a value to a listener eventually
-function Emitter(listener) {
-    if (! core.isFunction(listener))
-        throw new Error("Emitter constructor requires a listener function");
-    this._listener = listener;
-}
+/**
+ * data Event a = Async a | Emitter a
+ * Emitter emits a.
+ * Async chains Emitter's.
+ */
+var Event = ex.Event = Iface.parse("emit/1 fmap/1 unit/1 bind/1");
 
-Emitter.prototype.emit = function(val) {
-    var l = this._listener;
-    l.apply(l, val);
-    return this;
-};
-
-Emitter.prototype.fmap = function(listener) {
-    return new Emitter(listener);
-};
-
-Emitter.prototype.bind = function(listener) {
-    this._listener = listener;
-    return this;
-};
-
-ex.Emitter = function(l) { return new Emitter(l); };
-
-// data Event a = Send a | Receive a
-var Event = ex.Event = Iface.parse("fmap/1 unit/1 bind/1");
-
-var Send = ex.Send = function(val) {
+ex.Emitter = function(f) {
     return Event.instance({
-        //+ (a -> b) -> Event a -> Event b
-        fmap: function(f) {
-            return new Emitter(f(val));
-        },
-        unit: function(a) {
-        },
-        //+ Event a -> (a -> Event b) -> Event b
-        bind: function(f) {
+        emit: function(a) { if (isFunction(f)) f(a); }
+      , unit: function(g) { return ex.Emitter(g); }
+      , fmap: function(g) { return ex.Emitter(g(f)); }
+      , bind: function(g) { return f = g; }
+    });
+};
+
+/**
+ * Wrapper around emitters that allows chaining with fmap and bind.
+ * If you perform any async operations with the emitted result of
+ * this async, then you should use bind and return an Emitter.
+ * Otherwise use fmap.
+ */
+ex.Async = function(emitter) {
+    if (! isa(Event, emitter))
+        throw new Error("Async data constructor requires an Emitter");
+
+    return Event.instance({
+        emit: function(val) { return emitter.emit(val); }
+      , unit: function(emitter) { return ex.Async(emitter); }
+        /*
+         * fmap returns an async that will catch the
+         * emitted value from this async emitter, but with f applied first
+         */
+      , fmap: function(f) {
+          var out = ex.Emitter();
+
+          emitter.bind(function(val) {
+              out.emit(f(val));
+          });
+
+          return ex.Async(out);
+        }
+        /*
+         * bind returns an async that will emit
+         * the value that is emitted from the emitter
+         * returned by f
+         */
+      , bind: function(f) {
+          var out = ex.Emitter();
+
+          emitter.bind(function(val) {
+              var innerEmitter = f(val);
+
+              if (isa(Event, innerEmitter))
+                  innerEmitter.bind(function(innerVal) {
+                      out.emit(innerVal);
+                  });
+              else
+                  throw new Error("Async bind function argument did not return Event");
+          });
+
+          return ex.Async(out);
         }
     });
 };
 
+// signal an Emitter with a value
 ex.signal = function(emitter, val) {
-    if (! core.instanceOf(Emitter, emitter))
+    if (! isa(Event, emitter))
         throw new Error("on requires first argument to be an instance of Emitter");
     emitter.emit(val);
     return emitter;
 }.autoCurry();
 
-/*
- * Chainable events.
- * 
- */
-Event.chain = function(e) {
-};
+
 
 Object.getOwnPropertyNames(ex).forEach(function(prop) {
     module.exports[prop] = ex[prop];

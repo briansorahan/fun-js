@@ -250,14 +250,6 @@ ex.typeOf = function(T, val) {
     }
 }.autoCurry();
 
-//+ isa :: Iface -> Object -> Boolean
-ex.isa = function(iface, obj) {
-    return iface.check(obj);
-}.autoCurry();
-
-//+ isnota :: String -> Object -> Boolean
-ex.isnota = ex.compose(ex.not, ex.isa);
-
 //+ objMap :: (String -> a -> b) -> Object -> [b]
 //! map over key/value pairs in an object
 ex.objMap = function(f, obj) {

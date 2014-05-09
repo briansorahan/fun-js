@@ -4,11 +4,13 @@
  * @title fun-js
  * @overview Haskell-esque programming in javascript
  */
-var ex      = {}
-  , core    = require("./core")
-  , iface   = require("./iface")
-  , Iface   = iface.Iface
-  , If      = core.If;
+var ex          = {}
+  , core        = require("./core")
+  , iface       = require("./iface")
+  , isDefined   = core.isDefined
+  , isNull      = core.isNull
+  , Iface       = iface.Iface
+  , If          = core.If;
 
 // data Maybe a = Nothing | Just a
 var Maybe = ex.Maybe = Iface.parse("isNothing fmap/1 unit/1 bind/1");
@@ -40,6 +42,13 @@ var Just = ex.Just = function(val) {
         //       just wrap it for them
         bind:      function(f)    { return f(val); }
     });
+};
+
+Maybe.unit = function(a) {
+    if (!isDefined(a) || isNull(a))
+        return Nothing;
+    else
+        return Just(a);
 };
 
 //+ fromMaybe :: a -> Maybe a -> a
