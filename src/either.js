@@ -20,24 +20,27 @@ var Either = Iface.parse("val isLeft fmap/1 unit/1 bind/1");
 
 // Data constructors
 ex.Left  = function(val) {
-    return instance([ Functor, Monad ], {
-        where: {
-            val:    function()  { return val; },
-            isLeft: function()  { return true; },
-            unit:   function(a) { return ex.Left(a); },
-            fmap:   function(f) { return self; },
-            bind:   function(f) { return ex.Left(val); }
-        }
+    return Either.instance({
+        val:    function()  { return val; },
+        isLeft: function()  { return true; },
+        unit:   function(a) { return ex.Left(a); },
+        fmap:   function(f) { return self; },
+        bind:   function(f) { return ex.Left(val); }
     });
 };
 
 ex.Right = function(val) {
-    return {
-        val:    function()  { return val; },
-        isLeft: function()  { return false; },
-        fmap:   function(f) { return ex.Right(f(val)); },
-        bind:   function(f) { return f(val); }
-    };
+    return Either.instance({
+        val:    function()  { return val; }
+      , unit:   function(a) { return ex.Right(a); }
+      , isLeft: function()  { return false; }
+      , fmap:   function(f) { return ex.Right(f(val)); }
+      , bind:   function(f) { return f(val); }
+    });
+};
+
+Either.unit = function(a) {
+    return a instanceof Error ? ex.Left(a) : ex.Right(a);
 };
 
 //+ either :: (a -> c) -> (b -> c) -> Either a b -> c

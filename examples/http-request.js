@@ -7,6 +7,9 @@ var fun           = require("../src")
   , either        = fun.either
   , instance      = fun.instance
   , Http          = fun.Http
+  , Left          = fun.Left
+  , Right         = fun.Right
+  , isLeft        = fun.isLeft
   , req           = Http.Request.instance({
       host:      function() { return "www.google.com"; }
     , port:      function() { return 80; }
@@ -21,12 +24,21 @@ var logResponse = function(res) {
     console.log("Status:         " + res.statusCode());
     console.log("Headers:        " + JSON.stringify(res.headers()));
     console.log("Body Length:    " + res.body().length);
+    return Right(res);
+};
+
+var logError = function(err) {
+    console.error(err.message + "\n" + err.stack);
+    return Left(err);
 };
 
 // make the request
-httpRequest(req).bind(function(e) {
-    either(console.error, logResponse, e);
-    return Emitter(function(val) {
-        console.log("inner received " + JSON.stringify(val));
-    });
+httpRequest(req).fmap(function(e) {
+    return either(console.error, logResponse, e);
+}).fmap(function(val) {
+    if (val.isLeft()) {
+        console.log("got Left");
+    } else {
+        console.log("got Right");
+    }
 });
