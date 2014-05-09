@@ -4,8 +4,19 @@
  * @title fun-js
  * @overview Haskell-esque programming in javascript
  */
-var ex      = {}
-  , core    = require("./core");
+var ex           = {}
+  , core         = require("./core")
+  , functions    = core.functions
+  , identical    = core.identical
+  , isArray      = core.isArray
+  , isFunction   = core.isFunction
+  , isObject     = core.isObject
+  , keys         = core.keys
+  , merge        = core.merge
+  , not          = core.not
+  , objMap       = core.objMap
+  , compose      = core.compose
+;
 
 /*
  * If you're wondering why I only go up to functions with
@@ -37,11 +48,11 @@ var functionSeparator    = " ";
 
 // private Iface constructor
 function Iface(desc) {
-    if (! core.isObject(desc)) {
+    if (! isObject(desc)) {
         throw new Error("Iface constructor requires an object");
     }
     // cache an object with just the functions of desc
-    this._methods = core.functions(desc);
+    this._methods = functions(desc);
 }
 
 /*
@@ -57,7 +68,7 @@ function Iface(desc) {
  *     // => "greet/1 introduce/2"
  */
 Iface.prototype.toString = function() {
-    return core.objMap(function(k, v) {
+    return objMap(function(k, v) {
         return k + aritySeparator + v.length;
     }, this._methods).join(functionSeparator);
 };
@@ -137,7 +148,7 @@ Iface.parse = function() {
     var args = Array.prototype.slice.call(arguments);
     var merged = args.reduce(function(acc, s) {
         var o = ParseIfaceDescFrom(s);
-        return o === Iface.EmptyDesc ? acc : core.merge(acc, o);
+        return o === Iface.EmptyDesc ? acc : merge(acc, o);
     }, {});
     return new Iface(merged);
 };
@@ -152,19 +163,19 @@ function arity(f) { return f.length; }
 Iface.prototype.check = function(obj) {
     var self = this,
         myFuncs = self._methods,
-        myFuncNames = core.keys(self._methods),
-        objFuncs = core.functions(obj),
-        objFuncNames = core.keys(objFuncs);
+        myFuncNames = keys(self._methods),
+        objFuncs = functions(obj),
+        objFuncNames = keys(objFuncs);
 
-    if(! core.isArray(myFuncNames)) {
+    if(! isArray(myFuncNames)) {
         return false;
-    } else if (! core.isArray(objFuncNames)) {
+    } else if (! isArray(objFuncNames)) {
         return false;
     } else {
         return myFuncNames.reduce(function(acc, m) {
             return acc &&
-                core.isFunction(objFuncs[m]) &&
-                core.identical(arity(myFuncs[m]), arity(objFuncs[m]));
+                isFunction(objFuncs[m]) &&
+                identical(arity(myFuncs[m]), arity(objFuncs[m]));
         }, true);
     }
 };
@@ -190,7 +201,7 @@ Iface.prototype.instance = function(obj) {
  * @return {Iface} A new Iface instance.
  */
 ex.Iface = function(desc) {
-    if (! core.isObject(desc)) {
+    if (! isObject(desc)) {
         throw new Error("Iface constructor expects an object");
     }
     return new Iface(desc);
@@ -209,9 +220,9 @@ ex.isIface = core.instanceOf(Iface);
 //! If all the interfaces from the first param are implemented properly,
 //! returns the 2nd param.
 var instance = ex.instance = function(ifaces, obj) {
-    if (core.not(core.isArray(ifaces)) || (ifaces.length === 0))
+    if (not(isArray(ifaces)) || (ifaces.length === 0))
         throw new Error("instance expects a nonempty Array as first arg");
-    if (! (core.isObject(obj) && obj.hasOwnProperty("where") && core.isObject(obj.where)))
+    if (! (isObject(obj) && obj.hasOwnProperty("where") && isObject(obj.where)))
         throw new Error("instance expects Object with a 'where' Object property as second arg");
 
     ifaces.forEach(function(iface, i) {
@@ -226,6 +237,12 @@ var instance = ex.instance = function(ifaces, obj) {
 
     return obj.where;
 };
+
+//+ isa :: Iface -> Object -> Boolean
+ex.isa = function(iface, obj) { return iface.check(obj); }.autoCurry();
+
+//+ isnota :: Iface -> Object -> Boolean
+ex.isnota = compose(not, ex.isa);
 
 
 

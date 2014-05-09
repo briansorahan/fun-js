@@ -41,7 +41,6 @@ var CaseMatch = ex.CaseMatch = function(pattern, val) {
 };
 
 ex.Otherwise = {};
-ex.Match.Fail = {};
 
 /*
  * see
@@ -74,6 +73,8 @@ var Match = ex.Match = function() {
         return nargs < 2 ? ex.Match.Fail : TestCase(val, args);
     };
 };
+
+ex.Match.Fail = {};
 
 
 

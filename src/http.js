@@ -12,7 +12,7 @@ var ex            = {}
   , events        = require("./events")
   , either        = require("./either")
   , compose       = core.compose
-  , isa           = core.isa
+  , isa           = iface.isa
   , instance      = iface.instance
   , Iface         = iface.Iface
   , Functor       = types.Functor
@@ -20,7 +20,7 @@ var ex            = {}
   , Left          = either.Left
   , Right         = either.Right
   , Emitter       = events.Emitter
-  , Send          = events.Send
+  , Async         = events.Async
   , signal        = events.signal
 ;
 
@@ -31,14 +31,15 @@ var Http = {
 
 // httpRequest :: Http.Request -> Event (Either Error Http.Response)
 ex.httpRequest = function(req) {
-    function RequestWith(emitter) {
+    function makeRequest() {
+        var emitter = Emitter();
+
         if (! isa(Http.Request, req)) {
             emitter.emit(Left(new Error("httpRequest requires an Http.Request as the first argument")));
         } else {
             var buflen = 0
               , buf = new Buffer(buflen)
               , encoding = "utf8"
-              , emit = signal(emitter)
               , reqopts = {
                   method: req.method() || "GET",
                   host: req.host() || "localhost",
@@ -61,7 +62,8 @@ ex.httpRequest = function(req) {
                 });
 
                 res.on("end", function() {
-                    emitter.emit( Right( Http.Response.instance({
+                    console.log("emitting Right Http.Response");
+                    emitter.emit(Right(Http.Response.instance({
                         statusCode:     function() { return res.statusCode; }
                       , headers:        function() { return res.headers; }
                       , body:           function() { return buf.toString(); }
@@ -69,43 +71,18 @@ ex.httpRequest = function(req) {
                 });
             });
 
-            client.on("error", compose(emit(emitter), Left));
+            client.on("error", compose(emitter.emit.bind(emitter), Left));
             client.end();
         }
 
-        return Event.instance({
-            fmap: function(f) {
-                emitter.fmap(f);
-            }
-            , unit: function(a) {}
-            , bind: function(f) {
-                return RequestWith(f);
-            }
-        });
+        return emitter;
     }
 
-    return Event.instance({
-        fmap: function(f) {
-            return RequestWith(Emitter(f));
-        }
-        , unit: function(a) {}
-        , bind: function(f) {
-            return RequestWith(f);
-        }
-    });
+    return Async(makeRequest());
 };
 
 ex.Http = Http;
 
-/*
- * Chaining Event values...
- * httpRequest(reqInstance).bind(function(e) {
- *     // queryDb :: Http.Response -> Event (Either Error Db.QueryResult)
- *     function queryDb(res) {
- *         return Event.instance
- *     }
- * 
- *     // e :: Either Error Http.Response
- *     return e.bind(queryDb);
- * });
- */
+Object.getOwnPropertyNames(ex).forEach(function(prop) {
+    module.exports[prop] = ex[prop];
+});
