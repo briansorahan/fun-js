@@ -204,22 +204,17 @@ ex.strictDeepEqual = deepEqualWith(ex.identical);
 //+ and :: _ ... -> Boolean
 ex.and = function () {
     var args = Array.prototype.slice.call(arguments);
-    return function () {
-        var innerArgs = Array.prototype.slice.call(arguments);
-	    return ex.reduce(function(acc, v) {
-	        return acc && v;
-	    }, true, args.concat(innerArgs));
-    };
+	return args.reduce(function(acc, v) {
+	    return acc && v;
+	}, true);
 }.autoCurry();
 
 //+ or :: _ ... -> Boolean
 ex.or = function () {
     var args = Array.prototype.slice.call(arguments);
-    return function () {
-	return reduce(function(acc, v) {
+	return args.reduce(function(acc, v) {
 	    return acc || v;
-	}, false, args.concat(Array.prototype.slice.call(arguments)));
-    };
+	}, false);
 }.autoCurry();
 
 //+ not :: _ -> Boolean

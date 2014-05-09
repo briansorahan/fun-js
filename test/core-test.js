@@ -295,4 +295,69 @@ test("identical", function(t) {
     t.ok(is5(5), t.name + " compares with ===");
 });
 
+test("deepEqual", function(t) {
+    t.plan(6);
+    util.assertFunction(t, 0, deepEqual);
+    var foobar = { foo: { bar: 3 } };
+    var de = deepEqual(foobar);
+    util.assertCurriedFunction(t, 0, de);
+    var val1 = { foo: { bar: "3" } };
+    var val2 = { foo: { bar: 6 } };
+    t.ok(de(val1),
+         t.name + " says that " + JSON.stringify(val1) + " equals " + JSON.stringify(foobar));
+    t.notOk(de(val2),
+         t.name + " says that " + JSON.stringify(val2) + " does not equal " + JSON.stringify(foobar));
+});
+
+test("strictDeepEqual", function(t) {
+    t.plan(6);
+    util.assertFunction(t, 0, strictDeepEqual);
+    var foobar = { foo: { bar: 3 } };
+    var sde = strictDeepEqual(foobar);
+    util.assertCurriedFunction(t, 0, sde);
+    var val1 = { foo: { bar: "3" } };
+    var foobar2 = { foo: { bar: 3 } };
+    t.notOk(sde(val1),
+         t.name + " says that " + JSON.stringify(val1) + " does not equal " + JSON.stringify(foobar));
+    t.ok(sde(foobar2),
+         t.name + " says that " + JSON.stringify(foobar2) + " equals " + JSON.stringify(foobar));
+});
+
+test("and", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, and);
+    t.ok(and(true, true) && (! and(true, false)), t.name + " and's its arguments together");
+});
+
+test("or", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, or);
+    t.ok(or(true, false) && (! or(false, false)), t.name + " or's its arguments together");
+});
+
+test("not", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 1, not);
+    t.ok(not(false) && (! not(true)), t.name + " returns !arg");
+});
+
+test("pluck", function(t) {
+    t.plan(5);
+    util.assertFunction(t, 0, pluck);
+    var name = pluck("name");
+    var brian = { name: "brian" };
+    util.assertCurriedFunction(t, 0, name);
+    t.equal(name(brian), "brian",
+            t.name + " returns a property of an Object");
+});
+
+test("dot", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, dot);
+    var person = { name : "Brian" };
+    t.equal(flip(pluck)(person, "name"),
+            dot(person, "name"),
+            t.name + " acts just like flip(pluck)");
+});
+
 // TODO: test the rest of the core module
