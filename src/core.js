@@ -250,7 +250,7 @@ ex.typeOf = function(T, val) {
     }
 }.autoCurry();
 
-//+ objMap :: (String -> a -> b) -> Object -> [b]
+//+ objMap :: (String -> _ -> b) -> Object -> [b]
 //! map over key/value pairs in an object
 ex.objMap = function(f, obj) {
 	var result = [], index = 0;
@@ -267,7 +267,9 @@ ex.objMap = function(f, obj) {
     }
 }.autoCurry();
 
+//+ keys :: Object -> [String]
 ex.keys = ex.objMap(ex.arg(0));
+//+ vals :: Object -> [_]
 ex.vals = ex.objMap(ex.arg(1));
 
 //+ merge :: Object -> Object -> Object
@@ -284,26 +286,32 @@ ex.merge = function(obj1, obj2) {
         }
     });
     return result;
-};
+}.autoCurry();
 
 //+ reduceOwn :: Function -> Object -> Object
 ex.reduceOwn = function(f, obj) {
+    if (! ex.isFunction(f))
+        throw new Error("reduceOwn expects a Function as the first argument");
+    if (! ex.isObject(obj))
+        throw new Error("reduceOwn expects an Object as the second argument");
+
     var wrapper = function(result, k) {
         f(result, k, obj[k]);
         return result;
     };
 
-    if (ex.isObject(obj) || ex.isFunction(obj)) {
-        return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
-    } else {
-        return undefined;
-    }
+    return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
 }.autoCurry();
 
-//+ filterObject :: (Object -> String -> _ -> Boolean) -> Object -> Object
-ex.filterObject = function(f, obj) {
+//+ filterOwn :: (Object -> String -> _ -> Boolean) -> Object -> Object
+ex.filterOwn = function(f, obj) {
+    if (! ex.isFunction(f))
+        throw new Error("filterOwn expects the first argument to be a Function");
+    if (! ex.isObject(obj))
+        throw new Error("filterOwn expects the second argument to be an Object");
+
     var pick = function(result, key, val) {
-        if (f(result, key, val)) {
+        if (f(key, val)) {
             result[key] = val;
         }
     };
@@ -320,7 +328,7 @@ ex.functions = function(obj) {
         var f = function(acc, key, val) {
             return ex.isFunction(val);
         };
-        return ex.filterObject(f, obj);
+        return ex.filterOwn(f, obj);
     } else {
         return undefined;
     }

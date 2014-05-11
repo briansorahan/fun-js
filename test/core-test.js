@@ -32,6 +32,12 @@ var fun = require("../src")
   , has = fun.has
   , instanceOf = fun.instanceOf
   , typeOf = fun.typeOf
+  , objMap = fun.objMap
+  , keys = fun.keys
+  , vals = fun.vals
+  , merge = fun.merge
+  , reduceOwn = fun.reduceOwn
+  , filterOwn = fun.filterOwn
   , util = require("./util")
 // tape module
   , test = require("tape");
@@ -383,4 +389,77 @@ test("instanceOf", function(t) {
     t.notOk(myInstance({ foo: "bar" }), t.name + " fails if not `object instanceof constructor`");
 });
 
-// TODO: test the rest of the core module
+test("typeOf", function(t) {
+    t.plan(6);
+    util.assertFunction(t, 0, typeOf);
+    var isStr = typeOf("string");
+    util.assertCurriedFunction(t, 0, isStr);
+    t.ok(isStr("foo"), t.name + " returns true if a string literal is a typeof 'string'");
+    t.notOk(isStr([1,2,3]), t.name + " returns false if an array literal is a typeof 'string'");
+});
+
+test("objMap", function(t) {
+    t.plan(5);
+    util.assertFunction(t, 0, objMap);
+    var obj = { winners: 34, losers: 33 };
+    var myMap = objMap(function(k, v) { return v + 1; });
+    var myArr = myMap(obj);
+    util.assertCurriedFunction(t, 0, myMap);
+    t.ok(myArr.indexOf(34) !== -1 &&
+         myArr.indexOf(35) !== -1, t.name + " maps an Object to an Array using a k/v callback");
+});
+
+test("keys", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, keys);
+    var o = { foo: 1, bar: 2 };
+    t.deepEqual(keys(o).sort(), ["bar", "foo"],
+                t.name + " returns an Array containing the keys of an Object");
+});
+
+test("vals", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, vals);
+    var o = { foo: "bar", baz: "kludge" };
+    t.deepEqual(vals(o).sort(), ["bar", "kludge"],
+                t.name + " returns an Array containing the values of an Object");
+});
+
+test("merge", function(t) {
+    t.plan(5);
+    util.assertFunction(t, 0, merge);
+    var o1 = { dir: "foo", files: ["a", "b", "c"] };
+    var mergeO1 = merge(o1);
+    util.assertCurriedFunction(t, 0, mergeO1);
+    t.deepEqual(mergeO1({ dir: "bar", inodes: [1,2,3] }),
+                { dir: "bar", files: ["a", "b", "c"], inodes: [1,2,3] },
+                t.name + " merges Objects, giving precedence to properties of the 2nd Object");
+});
+
+test("reduceOwn", function(t) {
+    t.plan(5);
+    util.assertFunction(t, 0, reduceOwn);
+    var data = { foo: "1", bar: "erg2" };
+    var f = reduceOwn(function(acc, k, v) {
+        var intval = parseInt(v, 10);
+        if (! isNaN(intval)) {
+            acc[k] = intval;
+        }
+    });
+    util.assertCurriedFunction(t, 0, f);
+    var expectedResult = { foo: 1 };
+    t.deepEqual(expectedResult, f(data),
+                t.name + " maps one Object onto another with the provided callback");
+});
+
+test("filterOwn", function(t) {
+    t.plan(3);
+    util.assertFunction(t, 0, filterOwn);
+    var o = { foo: 2, bar: 45, baz: "quux" };
+    var f = filterOwn(function(k, v) {
+        return v > 10;
+    });
+    t.deepEqual({ bar: 45 }, f(o),
+                t.name + " filters an Object with a k/v callback");
+                
+});
