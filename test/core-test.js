@@ -360,4 +360,27 @@ test("dot", function(t) {
             t.name + " acts just like flip(pluck)");
 });
 
+test("has", function(t) {
+    t.plan(6);
+    util.assertFunction(t, 0, has);
+    var obj = { foo: 1, bar: 2 };
+    var hasFoo = has("foo");
+    var hasBaz = has("baz");
+    util.assertCurriedFunction(t, 0, hasFoo);
+    t.ok(hasFoo(obj),
+         t.name + " returns true if the object returns true for hasOwnProperty");
+    t.notOk(hasBaz(obj),
+         t.name + " returns false if the object returns false for hasOwnProperty");
+});
+
+test("instanceOf", function(t) {
+    t.plan(6);
+    util.assertFunction(t, 0, instanceOf);
+    function MyClass() {}
+    var myInstance = instanceOf(MyClass);
+    util.assertCurriedFunction(t, 0, myInstance);
+    t.ok(myInstance(new MyClass()), t.name + " tests if `object instanceof constructor`");
+    t.notOk(myInstance({ foo: "bar" }), t.name + " fails if not `object instanceof constructor`");
+});
+
 // TODO: test the rest of the core module
