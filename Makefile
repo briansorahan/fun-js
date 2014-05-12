@@ -10,7 +10,8 @@ NODE=node
 MODULES := src/core.js \
            src/http.js
 
-MODULE_TESTS := test/core-test.js
+# MODULE_TESTS := test/core-test.js \
+#                 test/list-test.js
 
 BROWSER_BUNDLE=bundle.js
 TEST_BUNDLE=test.js
@@ -31,7 +32,7 @@ clean:
             $(TEST_BUNDLE)
 
 test:
-	@$(NODE) $(MODULE_TESTS)
+	$(NODE) test/run.js
 
 $(TEST_BUNDLE): $(MODULES) $(MODULE_TESTS)
 	$(BROWSERIFY) $(MODULES) $(MODULE_TESTS) -o $(TEST_BUNDLE)

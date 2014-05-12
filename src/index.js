@@ -11,6 +11,7 @@ var ex = {};
   , require("./events")
   , require("./http")
   , require("./iface")
+  , require("./list")
   , require("./match")
   , require("./math")
   , require("./maybe")
