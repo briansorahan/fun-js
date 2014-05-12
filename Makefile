@@ -5,7 +5,7 @@ BROWSERIFY=node_modules/.bin/browserify
 TESTLING=node_modules/.bin/testling
 NODE=node
 
-.PHONY: node_module test browser-bundle test-bundle
+.PHONY: node_module test browser-bundle test-bundle testling
 
 MODULES := src/core.js \
            src/http.js
@@ -33,6 +33,9 @@ clean:
 
 test:
 	$(NODE) test/run.js
+
+testling:
+	$(TESTLING)
 
 $(TEST_BUNDLE): $(MODULES) $(MODULE_TESTS)
 	$(BROWSERIFY) $(MODULES) $(MODULE_TESTS) -o $(TEST_BUNDLE)

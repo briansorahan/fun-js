@@ -36,7 +36,7 @@
         "testling" : "1.6.1"
     },
     "testling" : {
-        "files" : "test/*.js",
+        "files" : "test/run.js",
         "browsers" : [
             "ie/6..10",
             "chrome/22..latest",
