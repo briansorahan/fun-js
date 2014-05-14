@@ -4,33 +4,40 @@
  * @title fun-js
  * @overview Haskell-esque programming in javascript
  */
-var ex      = {};
+var ex         = {}
+  , core       = require("./core")
+  , iface      = require("./iface")
+  , types      = require("./types")
+  , deepEqual  = core.deepEqual
+  , Iface      = iface.Iface
+  , instance   = iface.instance
+  , Eq         = types.Eq
+  // , Functor    = types.Functor
+  // , Monad      = types.Monad
+;
 
-// Pair
-var Pair = function(x, y) { this.x = x; this.y = y; };
+var Pair = Iface.parse("eq/1 fst snd");
 
-Pair.prototype.first = function() {
-    return this.x;
+ex.Pair = function(a, b) {
+    return instance([Eq], {
+        where: {
+            fst: function() { return a; }
+          , snd: function() { return b; }
+          , eq: function(p) {
+              return deepEqual(p.fst(), a)
+                  && deepEqual(p.snd(), b);
+            }
+        }
+    });
 };
-
-Pair.prototype.second = function() {
-    return this.y;
-};
-
-// Pair data constructor
-ex.Pair = function(x, y) {
-    return new Pair(x, y);
-}.autoCurry();
 
 //+ isPair :: _ -> Boolean
-ex.isPair = function(x) {
-    return x instanceof Pair;
-};
+ex.isPair = function(x) { return Pair.check(x); };
 
 //+ fst :: Pair a b -> a
 ex.fst = function(a, b) {
     if (ex.isPair(a) && (typeof b === "undefined")) {
-        return a.first();
+        return a.fst();
     } else {
         return a;
     }
@@ -39,7 +46,7 @@ ex.fst = function(a, b) {
 //+ snd :: (a -> b -> c) -> a
 ex.snd = function(a, b) {
     if (ex.isPair(a) && (typeof b === "undefined")) {
-        return a.second();
+        return a.snd();
     } else {
         return b;
     }

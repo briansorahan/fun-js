@@ -10,6 +10,7 @@ var ex          = {}
   , pair        = require("./pair")
   , compose     = core.compose
   , not         = core.not
+  , until       = core.until
   , Iface       = iface.Iface
   , isArray     = core.isArray
   , isFunction  = core.isFunction
@@ -42,6 +43,7 @@ ex.empty = function(xs) { return xs.length === 0; };
 
 ex.List = {
     Empty: []
+  , NotFound: {}
 };
 
 //+ head :: [a] -> a
@@ -68,58 +70,47 @@ ex.init = function(xs) {
 ex.concat = function(xs, ys) { return xs.concat(ys); }.autoCurry();
 
 //+ any :: (a -> Boolean) -> [a] -> Boolean
-ex.any = function (f, xs) {
-    if (! isFunction(f))
-        throw new Error("any expects argument 1 to be a Function");
-    if (! isArray(xs))
-        throw new Error("any expects argument 2 to be an Array");
-    return xs.some(f);
-}.autoCurry();
+ex.any = function (f, xs) { return xs.some(f); }.autoCurry();
 
 //+ all :: (a -> Boolean) -> [a] -> Boolean
-ex.all = function (f, xs) {
-    if (! isFunction(f))
-        throw new Error("every expects argument 1 to be a Function");
-    if (! isArray(xs))
-        throw new Error("every expects argument 2 to be an Array");
-    return xs.every(f);
-}.autoCurry();
+ex.all = function (f, xs) { return xs.every(f); }.autoCurry();
 
 ex.Iter = Iface.parse("done next");
 
 //+ iterate :: (a -> a) -> a -> [a]
 //! Returns a LazyList of repeated applications of f to x
 ex.iterate = function(f, x) {
-    if (! isFunction(f))
-        throw new Error("iterate expects argument 1 to be a Function");
     return ex.Iter.instance({
-        val:  function()  { return x; },
+        val:  function() { return x; },
         next: function() { return ex.iterate(f, f(x)); },
         done: function() { return false; }
     });
 }.autoCurry();
 
+//+ foreach :: Iter -> Iter
+// ex.foreach = function(iter, condition, f) {
+//     var acc = [];
+//     while (condition(iter.val())) {
+//         acc.push(f(iter.val()));
+//         iter = iter.next();
+//     }
+//     return acc;
+// };
+
 //+ find :: (a -> Boolean) -> [a] -> a
 ex.find = function(f, xs) {
-    if (! isFunction(f))
-        throw new Error("find expects argument 1 to be a Function");
-    if (! isArray(xs))
-        throw new Error("find expects argument 2 to be an Array");
     return xs.reduce(function(result, x) {
-        return f(x) ? x : result;
-    }, undefined);
+        return result !== ex.List.NotFound ? result : (f(x) ? x : result);
+    }, ex.List.NotFound);
 }.autoCurry();
 
 //+ zip :: [a] -> [b] -> [ Pair a b ]
 ex.zip = function(xs, ys) {
-    if (! (isArray(xs) && isArray(ys)))
-        throw new Error("zip expects two Array arguments");
-
     if (ex.empty(xs) || ex.empty(ys)) {
         return [];
     } else if (xs.length > ys.length) {
         return ys.reduce(function(acc, y, i) {
-            return acc.concat(ex.Pair(xs[i], y));
+            return acc.concat(Pair(xs[i], y));
         }, []);
     } else {
         return xs.reduce(function(acc, x, i) {
@@ -130,11 +121,6 @@ ex.zip = function(xs, ys) {
 
 //+ zipWith :: (a -> b -> _) -> [a] -> [b] -> _
 ex.zipWith = function(f, xs, ys) {
-    if (! isFunction(f))
-        throw new Error("zipWith expects argument 1 to be a Function");
-    if (! (isArray(xs) && isArray(ys)))
-        throw new Error("zipWith expects arguments 2 and 3 to be a Array's");
-
     var len = Math.min(xs.length, ys.length);
     var result = [];
     for (var i = 0; i < len; i++) {
@@ -168,22 +154,10 @@ ex.unzip = function(ps) {
  */
 
 //+ join :: String -> [a] -> String
-ex.join = function(string, xs) {
-    if (! isString(string))
-        throw new Error("join expects a string for argument 1");
-    if (! isArray(xs))
-        throw new Error("join expects an Array for argument 2");
-    return xs.join(string);
-}.autoCurry();
+ex.join = function(string, xs) { return xs.join(string); }.autoCurry();
 
 //+ slice :: Int -> Int -> [a] -> [a]
-ex.slice = function(lb, ub, xs) {
-    // if (! (isInteger(lb) && isInteger(ub)))
-    //     throw new Error("slice expects Integer's for the first two arguments");
-    // if (! isArray(xs))
-    //     throw new Error("slice expects an Array for argument 3");
-    return xs.slice(lb, ub);
-}.autoCurry();
+ex.slice = function(lb, ub, xs) { return xs.slice(lb, ub); }.autoCurry();
 
 //+ reverse :: [a] -> [a]
 ex.reverse = function(xs) {
@@ -191,32 +165,22 @@ ex.reverse = function(xs) {
 };
 
 //+ indexOf :: [a] -> a -> Int
-ex.indexOf = function(x, xs) {
-    return xs.indexOf(x);
-}.autoCurry();
+ex.indexOf = function(x, xs) { return xs.indexOf(x); }.autoCurry();
 
 //+ lastIndexOf :: [a] -> a -> Int
-ex.lastIndexOf = function(x, xs) {
-    return xs.lastIndexOf(x);
-}.autoCurry();
+ex.lastIndexOf = function(x, xs) { return xs.lastIndexOf(x); }.autoCurry();
 
 //+ contains :: a -> [a] -> Boolean
-// Works for Strings and Arrays!
-ex.contains = function(x, xs) {
-	return xs.indexOf(x) >= 0;
-}.autoCurry();
+ex.contains = function(x, xs) { return xs.indexOf(x) >= 0; }.autoCurry();
 
 //+ elem :: [a] -> a -> Boolean
 // contains with the arguments reversed
 // works better for currying
-ex.elem = function(xs, x) {
-    return xs.indexOf(x) >= 0;
-}.autoCurry();
+ex.elem = function(xs, x) { return xs.indexOf(x) >= 0; }.autoCurry();
 
 //+ complement :: [a] -> [a] -> [a]
-// Return a list of all elements of ys
-// that are not elements of xs.
-var complement = function(xs, ys) {
+//! Return a list of all elements of ys that are not elements of xs.
+ex.complement = function(xs, ys) {
     return ex.filter(compose(not, ex.elem(xs)), ys);
 };
 
@@ -226,8 +190,8 @@ ex.diff = function(a, b) {
         return undefined;
     } else {
         return {
-            added: complement(a, b),
-            removed: complement(b, a)
+            added: ex.complement(a, b),
+            removed: ex.complement(b, a)
         };
     }
 }.autoCurry();

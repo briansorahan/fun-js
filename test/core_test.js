@@ -24,7 +24,7 @@ module.exports.run = function(test) {
       , equal = fun.equal
       , identical = fun.identical
       , deepEqual = fun.deepEqual
-      , strictDeepEqual = fun.strictDeepEqual
+      , looseDeepEqual = fun.looseDeepEqual
       , and = fun.and
       , or = fun.or
       , not = fun.not
@@ -307,21 +307,7 @@ module.exports.run = function(test) {
         t.plan(6);
         util.assertFunction(t, 0, deepEqual);
         var foobar = { foo: { bar: 3 } };
-        var de = deepEqual(foobar);
-        util.assertCurriedFunction(t, 0, de);
-        var val1 = { foo: { bar: "3" } };
-        var val2 = { foo: { bar: 6 } };
-        t.ok(de(val1),
-             t.name + " says that " + JSON.stringify(val1) + " equals " + JSON.stringify(foobar));
-        t.notOk(de(val2),
-                t.name + " says that " + JSON.stringify(val2) + " does not equal " + JSON.stringify(foobar));
-    });
-
-    test("strictDeepEqual", function(t) {
-        t.plan(6);
-        util.assertFunction(t, 0, strictDeepEqual);
-        var foobar = { foo: { bar: 3 } };
-        var sde = strictDeepEqual(foobar);
+        var sde = deepEqual(foobar);
         util.assertCurriedFunction(t, 0, sde);
         var val1 = { foo: { bar: "3" } };
         var foobar2 = { foo: { bar: 3 } };
@@ -329,6 +315,20 @@ module.exports.run = function(test) {
                 t.name + " says that " + JSON.stringify(val1) + " does not equal " + JSON.stringify(foobar));
         t.ok(sde(foobar2),
              t.name + " says that " + JSON.stringify(foobar2) + " equals " + JSON.stringify(foobar));
+    });
+
+    test("looseDeepEqual", function(t) {
+        t.plan(6);
+        util.assertFunction(t, 0, looseDeepEqual);
+        var foobar = { foo: { bar: 3 } };
+        var de = looseDeepEqual(foobar);
+        util.assertCurriedFunction(t, 0, de);
+        var val1 = { foo: { bar: "3" } };
+        var val2 = { foo: { bar: 6 } };
+        t.ok(de(val1),
+             t.name + " says that " + JSON.stringify(val1) + " equals " + JSON.stringify(foobar));
+        t.notOk(de(val2),
+                t.name + " says that " + JSON.stringify(val2) + " does not equal " + JSON.stringify(foobar));
     });
 
     test("and", function(t) {

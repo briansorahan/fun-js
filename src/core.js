@@ -196,10 +196,10 @@ var deepEqualWith = function(cmp) {
 };
 
 //+ deepEqual :: _ -> _ -> Boolean
-ex.deepEqual = deepEqualWith(ex.equal);
+ex.deepEqual = deepEqualWith(ex.identical);
 
-//+ strictDeepEqual :: _ -> _ -> Boolean
-ex.strictDeepEqual = deepEqualWith(ex.identical);
+//+ looseDeepEqual :: _ -> _ -> Boolean
+ex.looseDeepEqual = deepEqualWith(ex.equal);
 
 //+ and :: _ ... -> Boolean
 ex.and = function () {

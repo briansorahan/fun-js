@@ -8,6 +8,10 @@ var ex      = {}
   , iface   = require("./iface")
   , Iface   = iface.Iface;
 
+//+ class Eq a where
+//+ eq :: a -> a -> Boolean
+ex.Eq = Iface.parse("eq/1");
+
 //+ class Functor f where
 //+ fmap :: (a -> b) -> f a -> f b
 ex.Functor = Iface.parse("fmap/1");
