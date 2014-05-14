@@ -182,30 +182,26 @@ ex.elem = function(xs, x) { return xs.indexOf(x) >= 0; }.autoCurry();
 //! Return a list of all elements of ys that are not elements of xs.
 ex.complement = function(xs, ys) {
     return ex.filter(compose(not, ex.elem(xs)), ys);
-};
+}.autoCurry();
 
 //+ diff :: [a] -> [a] -> Object
 ex.diff = function(a, b) {
-    if (! (isArray(a) && isArray(b))) {
-        return undefined;
-    } else {
-        return {
-            added: ex.complement(a, b),
-            removed: ex.complement(b, a)
-        };
-    }
+    return {
+        added: ex.complement(a, b),
+        removed: ex.complement(b, a)
+    };
 }.autoCurry();
 
 //+ replicate :: Int -> a -> [a]
 ex.replicate = function(n, v) {
-    if (! isNumber(n)) {
-        return undefined;
-    } else if (n === 0) {
+    if (! isInteger(n))
+        throw new Error("replicate expects an Integer for the first argument");
+
+    if (n === 0) {
         return [];
     } else {
-        var _n = Math.floor(n);
-        var arr = new Array(_n);
-        for (var i = 0; i < _n; i++) {
+        var arr = new Array(n);
+        for (var i = 0; i < n; i++) {
             arr[i] = v;
         }
         return arr;
@@ -214,44 +210,38 @@ ex.replicate = function(n, v) {
 
 //+ take :: Int -> [a] -> [a]
 ex.take = function(n, xs) {
-    if (! (isNumber(n) && isArray(xs))) {
-        return undefined;
-    } else if (n === 0 || ex.empty(xs)) {
+    if (!isInteger(n))
+        throw new Error("take expects an Integer as the first argument");
+
+    if (n === 0 || ex.empty(xs))
         return [];
-    } else {
-        var _n = Math.floor(n);
-        return xs.slice(0, _n);
-    }
+    else
+        return xs.slice(0, n);
 }.autoCurry();
 
 //+ drop :: Int -> [a] -> [a]
 ex.drop = function(n, xs) {
-    if (! (isNumber(n) && isArray(xs))) {
-        return undefined;
-    } else if (ex.empty(xs)) {
-        return [];
-    } else {
-        var _n = Math.floor(n);
-        return xs.slice(_n);
-    }
+    if (!isInteger(n))
+        throw new Error("take expects an Integer as the first argument");
+    return ex.empty(xs) ? [] : xs.slice(n);
 }.autoCurry();
 
 //+ splitAt :: Int -> [a] -> Pair [a] [a]
 ex.splitAt = function(n, xs) {
-    if (! (isNumber(n) && isArray(xs))) {
-        return undefined;
-    } else if (ex.empty(xs)) {
+    if (!isInteger(n))
+        throw new Error("splitAt expects an Integer for the first argument");
+
+    if (ex.empty(xs))
         return [];
-    } else {
+    else
         return Pair(ex.take(n, xs), ex.drop(n, xs));
-    }
 }.autoCurry();
 
 //+ takeWhile :: (a -> Boolean) -> [a] -> [a]
 ex.takeWhile = function(p, xs) {
-    if (! (isFunction(p) && isArray(xs))) {
-        return undefined;
-    } else if (ex.empty(xs)) {
+    // if (! (isFunction(p) && isArray(xs))) {
+    //     return undefined;
+    if (ex.empty(xs)) {
         return [];
     } else {
         var result = [];
@@ -285,11 +275,11 @@ ex.dropWhile = function(p, xs) {
     }
 }.autoCurry();
 
-//+ span :: (a -> Boolean) -> [a] -> ([a], [a])
+//+ span :: (a -> Boolean) -> [a] -> Pair [a] [a]
 ex.span = function(p, xs) {
-    if (! (isFunction(p) && isArray(xs))) {
-        return undefined;
-    } else if (ex.empty(xs)) {
+    // if (! (isFunction(p) && isArray(xs))) {
+    //     return undefined;
+    if (ex.empty(xs)) {
         return Pair([], []);
     } else {
         var i;

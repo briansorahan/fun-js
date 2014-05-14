@@ -36,6 +36,14 @@ module.exports.run = function(test) {
       , contains      = fun.contains
       , elem          = fun.elem
       , complement    = fun.complement
+      , diff          = fun.diff
+      , replicate     = fun.replicate
+      , take          = fun.take
+      , drop          = fun.drop
+      , splitAt       = fun.splitAt
+      , takeWhile     = fun.takeWhile
+      , dropWhile     = fun.dropWhile
+      , span          = fun.span
       , Pair          = fun.Pair
       , fst           = fun.fst
       , snd           = fun.snd
@@ -317,5 +325,93 @@ module.exports.run = function(test) {
         util.assertCurriedFunction(t, 0, eleml);
         t.ok(eleml("c") && !eleml("f"),
                 t.name + " determines if an Array contains a given element");
+    });
+
+    test("complement", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, complement);
+        var l1 = [1,2,3];
+        var l2 = [1,2,3,4,5];
+        var cl1 = complement(l1);
+        util.assertCurriedFunction(t, 0, cl1);
+        t.deepEqual(cl1(l2), [4,5],
+                    t.name + " complement(x, y) returns all the elements of y that are not in x");
+    });
+
+    test("diff", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, diff);
+        var l1 = [1,2,3];
+        var l2 = [2,3,4,5];
+        var d = diff(l1);
+        util.assertCurriedFunction(t, 0, d);
+        t.deepEqual(d(l2), { added: [4,5], removed: [1] },
+                    t.name + " returns an object that indicates which elements were added and which were removed");
+    });
+
+    test("replicate", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, replicate);
+        var rep4 = replicate(4);
+        util.assertCurriedFunction(t, 0, rep4);
+        t.deepEqual([1,1,1,1], rep4(1),
+                    t.name + " replicate(n, val) creates a list of length n where very element is val");
+    });
+
+    test("take", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, take);
+        var take3 = take(3);
+        util.assertCurriedFunction(t, 0, take3);
+        t.deepEqual(take3([1,2,3,4,5]), [1,2,3],
+                    t.name + " returns the first n elements of an array");
+    });
+
+    test("drop", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, drop);
+        var drop2 = drop(2);
+        util.assertCurriedFunction(t, 0, drop2);
+        t.deepEqual(drop2([1,2,3,4,5]), [3,4,5],
+                    t.name + " drops the first n elements of an array");
+    });
+
+    test("splitAt", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, splitAt);
+        var splitAt2 = splitAt(2);
+        util.assertCurriedFunction(t, 0, splitAt2);
+        t.ok(splitAt2([1,2,3,4,5]).eq(Pair([1,2], [3,4,5])),
+             t.name + " splits a list into a Pair of lists");
+    });
+
+    test("takeWhile", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, takeWhile);
+        var lt5 = takeWhile(function(n) { return n < 5; });
+        var l = [1,2,3,4,5,6,7,8];
+        util.assertCurriedFunction(t, 0, lt5);
+        t.deepEqual([1,2,3,4], lt5(l),
+                    t.name + " takes elements from a list while f holds");
+    });
+
+    test("dropWhile", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, dropWhile);
+        var lt5 = dropWhile(function(n) { return n < 5; });
+        var l = [1,2,3,4,5,6,7,8];
+        util.assertCurriedFunction(t, 0, lt5);
+        t.deepEqual([5,6,7,8], lt5(l),
+                    t.name + " drops elements from a list while f holds");
+    });
+
+    test("span", function(t) {
+        t.plan(5);
+        util.assertFunction(t, 0, span);
+        var span5 = span(function(n) { return n < 5; });
+        var l = [1,2,3,4,5,6,7,8];
+        util.assertCurriedFunction(t, 0, span5);
+        t.ok(span5(l).eq(Pair([1,2,3,4], [5,6,7,8])),
+             t.name + " returns a Pair of lists where the first one is what would be returned by takeWhile and the second one is what would have been dropped");
     });
 };
