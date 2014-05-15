@@ -71,7 +71,7 @@ ex.httpRequest = function(req) {
                 });
             });
 
-            client.on("error", compose(emitter.emit.bind(emitter), Left));
+            client.on("error", compose(emitter.emit, Left));
             client.end();
         }
 
