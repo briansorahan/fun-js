@@ -23,74 +23,24 @@ var ex          = {}
 ;
 
 //+ reduce :: (a -> b -> b) -> [b] -> b
-ex.reduce = (function() {
-    // polyfill
-    if (! Array.prototype.reduce) {
-        Array.prototype.reduce = function(fn, initialValue) {
-            var len = this.length;
-
-            if (len === 0) {
-                return initialValue;
-            } else {
-                var i, r = fn(initialValue, this[0]);
-
-                if (len === 1) {
-                    return r;
-                } else {
-                    for (i = 1; i < len; i++) {
-                        r = fn(r, this[i]);
-                    }
-                    return r;
-                }
-            }
-        };
-    }
-    
-    return function(f, initialValue, xs) {
-        return xs.reduce(f, initialValue);
-    }.autoCurry();
-})();
+ex.reduce = function(f, initialValue, xs) {
+    return xs.reduce(f, initialValue);
+}.autoCurry();
 
 //+ map :: (a -> b) -> [a] -> [b]
 ex.map = function (fn, xs) {
-    return ex.reduce(function(acc, x) {
-        return acc.concat(fn(x));
-    }, [], xs);
+    return xs.map(fn);
 }.autoCurry();
 
 //+ filter :: (a -> b) -> [a] -> [b]
 ex.filter = function (fn, xs) {
-    return ex.reduce(function(acc, x) {
-        return fn(x) ? acc.concat(x) : acc;
-    }, [], xs);
+    return xs.filter(fn);
 }.autoCurry();
 
 //+ reduceRight :: (a -> b -> b) -> [b] -> b
-ex.reduceRight = (function() {
-    if (! Array.prototype.reduceRight) {
-        Array.prototype.reduceRight = function (fn, initialValue) {
-            var len = this.length;
-
-            if (len === 0) {
-                return initialValue;
-            } else {
-                var i, r = fn(initialValue, this[0]);
-
-                if (len === 1) {
-                    return r;
-                } else {
-                    for (i = len; i > 0; i--) {
-                        r = fn(r, this[i]);
-                    }
-                    return r;
-                }
-            }
-        };
-    }
-    return function(f, initialValue, xs) {
-        return xs.reduceRight(f, initialValue);
-    }.autoCurry();
-})();
+ex.reduceRight = function(f, initialValue, xs) {
+    return xs.reduceRight(f, initialValue);
+}.autoCurry();
 
 //+ empty :: Array -> Boolean
 ex.empty = function(xs) { return xs.length === 0; };
@@ -124,34 +74,14 @@ ex.init = function(xs) {
 ex.concat = function(xs, ys) { return xs.concat(ys); }.autoCurry();
 
 //+ any :: (a -> Boolean) -> [a] -> Boolean
-ex.any = (function() {
-    if (! Array.prototype.some) {
-        Array.prototype.some = function(f) {
-            return this.reduce(function(acc, x) {
-                return acc || f(x);
-            }, false);
-        };
-    }
-    
-    return function (f, xs) {
-        return xs.some(f);
-    }.autoCurry();
-})();
+ex.any = function (f, xs) {
+    return xs.some(f);
+}.autoCurry();
 
 //+ all :: (a -> Boolean) -> [a] -> Boolean
-ex.all = (function() {
-    if (! Array.prototype.every) {
-        Array.prototype.every = function(f) {
-            return this.reduce(function(acc, x) {
-                return acc && f(x);
-            }, true);
-        };
-    }
-
-    return function (f, xs) {
-        return xs.every(f);
-    }.autoCurry();
-})();
+ex.all = function (f, xs) {
+    return xs.every(f);
+}.autoCurry();
 
 ex.Iter = Iface.parse("done next");
 

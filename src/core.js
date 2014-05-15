@@ -11,131 +11,6 @@
  * - This module should *never* require any other.
  */
 
-// Polyfills
-// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
-if (! Object.keys) {
-    Object.keys = (function () {
-        'use strict';
-        var hasOwnProperty = Object.prototype.hasOwnProperty,
-            hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
-            dontEnums = [
-                'toString',
-                'toLocaleString',
-                'valueOf',
-                'hasOwnProperty',
-                'isPrototypeOf',
-                'propertyIsEnumerable',
-                'constructor'
-            ],
-            dontEnumsLength = dontEnums.length;
-
-        return function (obj) {
-            if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
-                throw new TypeError('Object.keys called on non-object');
-            }
-
-            var result = [], prop, i;
-
-            for (prop in obj) {
-                if (hasOwnProperty.call(obj, prop)) {
-                    result.push(prop);
-                }
-            }
-
-            if (hasDontEnumBug) {
-                for (i = 0; i < dontEnumsLength; i++) {
-                    if (hasOwnProperty.call(obj, dontEnums[i])) {
-                        result.push(dontEnums[i]);
-                    }
-                }
-            }
-            return result;
-        };
-    }());
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
-if (! Array.prototype.indexOf) {
-    Array.prototype.indexOf = function (searchElement, fromIndex) {
-        if ( this === undefined || this === null ) {
-            throw new TypeError( '"this" is null or not defined' );
-        }
-
-        // Hack to convert object.length to a UInt32
-        var length = this.length >>> 0;
-
-        fromIndex = +fromIndex || 0;
-
-        if (Math.abs(fromIndex) === Infinity) {
-            fromIndex = 0;
-        }
-
-        if (fromIndex < 0) {
-            fromIndex += length;
-            if (fromIndex < 0) {
-                fromIndex = 0;
-            }
-        }
-
-        for (;fromIndex < length; fromIndex++) {
-            if (this[fromIndex] === searchElement) {
-                return fromIndex;
-            }
-        }
-
-        return -1;
-    };
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/lastIndexOf
-if (!Array.prototype.lastIndexOf) {
-    Array.prototype.lastIndexOf = function(searchElement /*, fromIndex*/) {
-        'use strict';
-
-        if (this === void 0 || this === null) {
-            throw new TypeError();
-        }
-
-        var n, k,
-            t = Object(this),
-            len = t.length >>> 0;
-        if (len === 0) {
-            return -1;
-        }
-
-        n = len - 1;
-        if (arguments.length > 1) {
-            n = Number(arguments[1]);
-            if (n != n) {
-                n = 0;
-            }
-            else if (n != 0 && n != (1 / 0) && n != -(1 / 0)) {
-                n = (n > 0 || -1) * Math.floor(Math.abs(n));
-            }
-        }
-
-        for (k = n >= 0
-             ? Math.min(n, len - 1)
-             : len - Math.abs(n); k >= 0; k--) {
-            if (k in t && t[k] === searchElement) {
-                return k;
-            }
-        }
-        return -1;
-    };
-}
-
-if (! Array.prototype.forEach) {
-    Array.prototype.forEach = function(f) {
-        var i;
-        for (i = 0; i < this.length; i++) {
-            f(this[i], i);
-        }
-    };
-}
-
-
-
 // object which will get merged into module.exports
 var ex = {};
 
@@ -147,20 +22,11 @@ ex.isNull = function(x) { return x === null; };
 //+ isDefined :: _ -> Boolean
 ex.isDefined = function(x) { return x !== undefined; };
 //+ isArray :: _ -> Boolean
-ex.isArray = (function() {
-    if(! Array.isArray) {
-        Array.isArray = function(arg) {
-            return Object.prototype.toString.call(arg) === '[object Array]';
-        };
-    }
-
-    return function(x) {
-        return Array.isArray(x);
-    };
-})();
-
+ex.isArray = Array.isArray;
 //+ isString :: _ -> Boolean
-ex.isString = function(x) { return typeof x === "string" || x instanceof String; };
+ex.isString = function(x) {
+    return typeof x === "string" || x instanceof String;
+};
 //+ isFunction :: _ -> Boolean
 ex.isFunction = function(x) { return typeof x === "function"; };
 //+ isInfinity :: _ -> Boolean
