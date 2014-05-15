@@ -9,6 +9,19 @@
  * - This module is the foundation of fun-js.
  * - All other modules in fun-js will probably want to require this one.
  * - This module should *never* require any other.
+ * 
+ * IE8 compatibility need to fix:
+ * - Object.getOwnPropertyNames
+ * - Array.isArray
+ * - Array.prototype.indexOf
+ * - Array.prototype.lastIndexOf
+ * - Array.prototype.every
+ * - Array.prototype.some
+ * - Array.prototype.forEach
+ * - Array.prototype.map
+ * - Array.prototype.filter
+ * - Array.prototype.reduce
+ * - Array.prototype.reduceRight
  */
 
 // object which will get merged into module.exports

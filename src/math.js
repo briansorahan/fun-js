@@ -41,20 +41,26 @@ ex.add = function(x, y) { return x + y; }.autoCurry();
 //+ multiply :: Number -> Number -> Number
 ex.multiply = function(x, y) { return x * y; }.autoCurry();
 
+ex.DivideByZeroError = {};
+
 //+ divide :: Number -> Number -> Number
-ex.divide = function(dividend, divisor) { return dividend / divisor; }.autoCurry();
+ex.divide = function(dividend, divisor) {
+    return dividend / divisor;
+}.autoCurry();
 
 //+ pow :: Number ... -> Number
-ex.pow = function(exponent, base) { return Math.pow(base, exponent); }.autoCurry();
+ex.pow = function(exponent, base) {
+    return Math.pow(base, exponent);
+}.autoCurry();
 
 //+ rem :: Number -> Number -> Number
 //! computes remainder of m / n
-ex.rem = function(m, n) {
+ex.rem = function(n, m) {
     if (! (core.isInteger(m) && core.isInteger(n))) {
         throw new Error("rem expects integers");
     }
     return m < n ? m : (m == n ? 0 : m - (n * Math.floor(m / n)));
-};
+}.autoCurry();
 
 //+ even :: Integer -> Boolean
 ex.even = function(n) {
