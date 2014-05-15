@@ -20,7 +20,7 @@ var ex = {};
 
 ].forEach(function(module) {
     // munge them all together
-    Object.getOwnPropertyNames(module).forEach(function(prop) {
+    Object.keys(module).forEach(function(prop) {
         ex[prop] = module[prop];
     });
 });

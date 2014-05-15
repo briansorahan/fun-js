@@ -54,6 +54,6 @@ ex.snd = function(a, b) {
 
 
 
-Object.getOwnPropertyNames(ex).forEach(function(prop) {
+Object.keys(ex).forEach(function(prop) {
     module.exports[prop] = ex[prop];
 });

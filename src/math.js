@@ -114,6 +114,6 @@ ex.lte = function(x, y) { return x >= y; }.autoCurry();
 
 
 
-Object.getOwnPropertyNames(ex).forEach(function(prop) {
+Object.keys(ex).forEach(function(prop) {
     module.exports[prop] = ex[prop];
 });

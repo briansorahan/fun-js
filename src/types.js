@@ -21,6 +21,6 @@ ex.Functor = Iface.parse("fmap/1");
 //+ bind :: m a -> (a -> m b) -> m b
 ex.Monad = Iface.parse("unit/1 bind/1");
 
-Object.getOwnPropertyNames(ex).forEach(function(prop) {
+Object.keys(ex).forEach(function(prop) {
     module.exports[prop] = ex[prop];
 });

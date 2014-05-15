@@ -11,18 +11,55 @@
  * - This module should *never* require any other.
  * 
  * IE8 compatibility need to fix:
- * - Object.getOwnPropertyNames
- * - Array.isArray
+ * - Object.keys
+ * - Function.prototype.bind
  * - Array.prototype.indexOf
  * - Array.prototype.lastIndexOf
- * - Array.prototype.every
- * - Array.prototype.some
  * - Array.prototype.forEach
- * - Array.prototype.map
- * - Array.prototype.filter
- * - Array.prototype.reduce
- * - Array.prototype.reduceRight
  */
+
+// Polyfills
+// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+if (! Object.keys) {
+    Object.keys = (function () {
+        'use strict';
+        var hasOwnProperty = Object.prototype.hasOwnProperty,
+            hasDontEnumBug = !({toString: null}).propertyIsEnumerable('toString'),
+            dontEnums = [
+                'toString',
+                'toLocaleString',
+                'valueOf',
+                'hasOwnProperty',
+                'isPrototypeOf',
+                'propertyIsEnumerable',
+                'constructor'
+            ],
+            dontEnumsLength = dontEnums.length;
+
+        return function (obj) {
+            if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+                throw new TypeError('Object.keys called on non-object');
+            }
+
+            var result = [], prop, i;
+
+            for (prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    result.push(prop);
+                }
+            }
+
+            if (hasDontEnumBug) {
+                for (i = 0; i < dontEnumsLength; i++) {
+                    if (hasOwnProperty.call(obj, dontEnums[i])) {
+                        result.push(dontEnums[i]);
+                    }
+                }
+            }
+            return result;
+        };
+    }());
+}
 
 // object which will get merged into module.exports
 var ex = {};
@@ -35,7 +72,18 @@ ex.isNull = function(x) { return x === null; };
 //+ isDefined :: _ -> Boolean
 ex.isDefined = function(x) { return x !== undefined; };
 //+ isArray :: _ -> Boolean
-ex.isArray = function(x) { return Array.isArray(x); };
+ex.isArray = (function() {
+    if(! Array.isArray) {
+        Array.isArray = function(arg) {
+            return Object.prototype.toString.call(arg) === '[object Array]';
+        };
+    }
+
+    return function(x) {
+        return Array.isArray(x);
+    };
+})();
+
 //+ isString :: _ -> Boolean
 ex.isString = function(x) { return typeof x === "string" || x instanceof String; };
 //+ isFunction :: _ -> Boolean
@@ -194,8 +242,8 @@ var deepEqualWith = function(cmp) {
         } else if (ex.isObject(a)) {
             if (! ex.isObject(b)) return false;
 
-            var aprops = Object.getOwnPropertyNames(a);
-            var bprops = Object.getOwnPropertyNames(b);
+            var aprops = Object.keys(a);
+            var bprops = Object.keys(b);
 
             return aprops.length === bprops.length && aprops.reduce(function(acc, p) {
                 return acc && b.hasOwnProperty(p) && deqw(a[p], b[p]);
@@ -313,7 +361,7 @@ ex.reduceOwn = function(f, obj) {
         return result;
     };
 
-    return Object.getOwnPropertyNames(obj).reduce(wrapper, {});
+    return Object.keys(obj).reduce(wrapper, {});
 }.autoCurry();
 
 //+ filterOwn :: (Object -> String -> _ -> Boolean) -> Object -> Object
@@ -349,6 +397,6 @@ ex.functions = function(obj) {
 
 
 
-Object.getOwnPropertyNames(ex).forEach(function(prop) {
+Object.keys(ex).forEach(function(prop) {
     module.exports[prop] = ex[prop];
 });

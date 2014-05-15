@@ -246,6 +246,6 @@ ex.isnota = compose(not, ex.isa);
 
 
 
-Object.getOwnPropertyNames(ex).forEach(function(prop) {
+Object.keys(ex).forEach(function(prop) {
     module.exports[prop] = ex[prop];
 });
