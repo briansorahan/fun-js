@@ -313,9 +313,7 @@ ex.filterOwn = function(f, obj) {
         throw new Error("filterOwn expects the second argument to be an Object");
 
     var pick = function(result, key, val) {
-        if (f(key, val)) {
-            result[key] = val;
-        }
+        if (f(key, val)) result[key] = val;
     };
     return ex.reduceOwn(pick, obj);
 }.autoCurry();
@@ -327,7 +325,7 @@ ex.functions = function(obj) {
     if (ex.isArray(obj)) {
         return obj.filter(ex.isFunction);
     } else if (ex.isObject(obj) || ex.isFunction(obj)) {
-        var f = function(acc, key, val) {
+        var f = function(key, val) {
             return ex.isFunction(val);
         };
         return ex.filterOwn(f, obj);

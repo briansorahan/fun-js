@@ -10,13 +10,6 @@ var fun           = require("../src")
   , Left          = fun.Left
   , Right         = fun.Right
   , isLeft        = fun.isLeft
-  , req           = Http.Request.instance({
-      host:      function() { return "www.google.com"; }
-    , port:      function() { return 80; }
-    , path:      function() { return "/"; }
-    , method:    function() { return "GET"; }
-    , headers:   function() { return {}; }
-  })
 ;
 
 // response logger
@@ -32,13 +25,25 @@ var logError = function(err) {
     return Left(err);
 };
 
-// make the request
+// the request
+var req = Http.Request.instance({
+    host:      function() { return "www.google.com"; }
+  , port:      function() { return 80; }
+  , path:      function() { return "/"; }
+  , method:    function() { return "GET"; }
+  , headers:   function() { return {}; }
+});
+
+// send it
+// if we were going to perform another async action
+// in the response handler function, then we would
+// use bind instead of fmap
 httpRequest(req).fmap(function(e) {
     return either(console.error, logResponse, e);
 }).fmap(function(val) {
     if (val.isLeft()) {
-        console.log("got Left");
+        console.log("Error...");
     } else {
-        console.log("got Right");
+        console.log("Success!");
     }
 });

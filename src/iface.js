@@ -8,6 +8,7 @@ var ex           = {}
   , core         = require("./core")
   , functions    = core.functions
   , identical    = core.identical
+  , instanceOf   = core.instanceOf
   , isArray      = core.isArray
   , isFunction   = core.isFunction
   , isObject     = core.isObject
@@ -212,7 +213,7 @@ ex.Iface.parse = Iface.parse;
 //+ data IFace.Empty
 ex.Iface.Empty = Iface.Empty;
 //+ isIface :: Object -> Boolean
-ex.isIface = core.instanceOf(Iface);
+ex.isIface = instanceOf(Iface);
 
 //+ instance :: [Iface] -> Object -> Object
 //! Throws an Error if the 2nd param does not implement all
@@ -242,7 +243,7 @@ var instance = ex.instance = function(ifaces, obj) {
 ex.isa = function(iface, obj) { return iface.check(obj); }.autoCurry();
 
 //+ isnota :: Iface -> Object -> Boolean
-ex.isnota = compose(not, ex.isa);
+ex.isnota = function(iface, obj) { return !iface.check(obj); }.autoCurry();
 
 
 
