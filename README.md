@@ -28,7 +28,7 @@ var fun = require("fun-js");
 ```
 
  - **fun-js adds a method called 'autoCurry' to Function.prototype**
- - **browser usage after v0.0.3 requires [browserify][2]**
+ - **browser usage for versions >= 0.0.3 requires [browserify][2]**
 
 
 ### currying
@@ -73,7 +73,20 @@ var hasBrian2 = compose(isDefined, find(isBrian));
 assert(hasBrian2(beatles), "double-checking that Brian is a legendary rock star");
 ```
 
-### types
+### interfaces
+One of the questions you have to answer if you want to
+bring haskell techniques to javascript is how much type-checking
+to do.
+
+The way fun-js solves this is with interfaces.
+
+Interfaces allow you to easily check if an object contains
+a set of function properties. It is also really easy to
+create an interface from a string using Iface.parse.
+Each function will be listed in the string followed by
+/arity. You can also call Iface.parse with any number of
+string arguments, which makes it easier to create large
+interfaces without having a run-on line.
 ```javascript
 var Iface = fun.Iface
   , instance = fun.instance
@@ -119,13 +132,21 @@ assert.throws(badStack);
 
 // isa returns true/false if an object
 // does/doesn't implement an interface
-var List = Iface.parse("empty add/1 remove/1")
+var List = Iface.parse("empty"
+                     , "clear"
+                     , "contains/1"
+                     , "indexOf/1"
+                     , "size"
+                     , "add/1"
+                     , "remove/1")
   , collection = goodStack()
 ;
 
 assert(!isa(List, collection), "collection does not implement List");
 assert(isa(Stack, collection), "collection does implement Stack");
 ```
+
+### types
 
 ## more info
 [project page][1]

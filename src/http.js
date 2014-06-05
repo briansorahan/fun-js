@@ -62,7 +62,6 @@ ex.httpRequest = function(req) {
                 });
 
                 res.on("end", function() {
-                    console.log("emitting Right Http.Response");
                     emitter.emit(Right(Http.Response.instance({
                         statusCode:     function() { return res.statusCode; }
                       , headers:        function() { return res.headers; }
