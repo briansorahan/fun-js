@@ -1,5 +1,15 @@
 # fun-js
 
+##### Pure functional programming for the working javascript programmer.
+
+The goal of fun-js is to provide a way for people who write lots of javascript
+to use techniques borrowed from [haskell][3].
+
+We want to:
+ 1. Apply the autoCurry function from [wu.js][4] to most of the ECMA-262 standard
+ 2. Provide a standard way to implement interfaces and check implementations
+ 3. Use interfaces to define some of the built-in types from the [prelude][5]
+
 ## node
 
 
@@ -147,9 +157,28 @@ assert(isa(Stack, collection), "collection does implement Stack");
 ```
 
 ### types
+```javascript
+// builtin types include Eq, Functor, Monad
+// these are all Iface's -- see src/types.js
+assert(isa(Eq, {
+    eq: function(other) {}
+});
+
+assert(isa(Functor, {
+    fmap: function(f) {}
+});
+
+assert(isa(Monad, {
+    unit: function(val) {}
+  , bind: function(f) {}
+});
+```
 
 ## more info
 [project page][1]
 
 [1]: http://briansorahan.github.io/fun-js
 [2]: http://browserify.org
+[3]: http://haskell.org
+[4]: http://fitzgen.github.io/wu.js/
+[5]: http://hackage.haskell.org/package/base-4.7.0.0/docs/Prelude.html
