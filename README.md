@@ -27,8 +27,8 @@ $ npm install fun-js
 var fun = require("fun-js");
 ```
 
-**fun-js adds a method called 'autoCurry' to Function.prototype**
-**browser usage after v0.0.3 requires [browserify][2]**
+ - **fun-js adds a method called 'autoCurry' to Function.prototype**
+ - **browser usage after v0.0.3 requires [browserify][2]**
 
 
 ### currying
