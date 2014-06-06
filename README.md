@@ -84,9 +84,14 @@ assert(hasBrian2(beatles), "double-checking that Brian is a legendary rock star"
 ```
 
 ### interfaces
-One of the questions you have to answer if you want to
-bring haskell techniques to javascript is how much type-checking
-to do.
+One of the biggest problems with using haskell techniques in
+javascript is the difference between the type systems of the
+two languages. Part of the beauty of javascript, the reason
+why we can write code quickly with it, is because of its dynamic
+typing. This is also why writing haskell-ish code in
+javascript seems awkward because there is no compiler to
+ensure that a function that *should* return a particular type
+actually does.
 
 The way fun-js solves this is with interfaces.
 
@@ -94,7 +99,7 @@ Interfaces allow you to easily check if an object contains
 a set of function properties. It is also really easy to
 create an interface from a string using Iface.parse.
 Each function will be listed in the string followed by
-/arity. You can also call Iface.parse with any number of
+along with arity. You can also call Iface.parse with any number of
 string arguments, which makes it easier to create large
 interfaces without having a run-on line.
 ```javascript

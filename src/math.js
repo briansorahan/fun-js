@@ -59,7 +59,13 @@ ex.rem = function(n, m) {
     if (! (core.isInteger(m) && core.isInteger(n))) {
         throw new Error("rem expects integers");
     }
-    return m < n ? m : (m == n ? 0 : m - (n * Math.floor(m / n)));
+    if (m < n) {
+        return m;
+    } else if (m === n) {
+        return 0;
+    } else {
+        return m - (n * Math.floor(m / n));
+    }
 }.autoCurry();
 
 //+ even :: Integer -> Boolean
@@ -67,7 +73,7 @@ ex.even = function(n) {
     if (! core.isInteger(n))
         throw new Error("even requires an Integer");
 
-    if (ex.rem(n, 2) == 0)
+    if (ex.rem(2, n) == 0)
         return true;
     else
         return false;

@@ -9,7 +9,10 @@ var ex      = {}
   , list    = require("./list")
   , math    = require("./math")
   , iface   = require("./iface")
-  , Iface   = iface.Iface;
+  , isa     = iface.isa
+  , Iface   = iface.Iface
+  , isIface = iface.isIface
+;
 
 /*
  * Pattern matching according to the following rules:
@@ -20,16 +23,16 @@ var ex      = {}
  * For Infinity, null, undefined use identical.
  */
 var CaseMatch = ex.CaseMatch = function(pattern, val) {
-    if (pattern instanceof Iface) {
-        return core.isa(pattern, val);
+    if (isIface(pattern)) {
+        return isa(pattern, val);
     } else if (core.isFunction(pattern)) {
         return pattern(val);
     } else if (core.isRegexp(pattern) && core.isString(val)) {
         return pattern.test(val);
     } else if (core.isArray(val) && pattern !== Array) {
-        return core.strictDeepEqual(pattern, val);
+        return core.deepEqual(pattern, val);
     } else if (core.isObject(pattern) && pattern !== Object) {
-        return core.strictDeepEqual(pattern, val);
+        return core.deepEqual(pattern, val);
     } else if (core.isInfinity(val)) {
         return core.isInfinity(pattern);
     } else {
