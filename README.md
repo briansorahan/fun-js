@@ -99,7 +99,7 @@ Interfaces allow you to easily check if an object contains
 a set of function properties. It is also really easy to
 create an interface from a string using Iface.parse.
 Each function will be listed in the string followed by
-along with arity. You can also call Iface.parse with any number of
+its arity. You can also call Iface.parse with any number of
 string arguments, which makes it easier to create large
 interfaces without having a run-on line.
 ```javascript
@@ -159,6 +159,13 @@ var List = Iface.parse("empty"
 
 assert(!isa(List, collection), "collection does not implement List");
 assert(isa(Stack, collection), "collection does implement Stack");
+
+// a third way to define an Iface, provides more detail
+// about the args that each function expects
+var Person = Iface({
+    greets: function(guest) {},
+    stops: function(evil) {}
+});
 ```
 
 ### types
